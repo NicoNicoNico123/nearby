@@ -243,6 +243,7 @@ class _SwipeCardsScreenState extends State<SwipeCardsScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         FloatingActionButton(
+                          heroTag: "dislike_button",
                           onPressed: _onSwipeLeft,
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.red,
@@ -250,6 +251,7 @@ class _SwipeCardsScreenState extends State<SwipeCardsScreen>
                           child: const Icon(Icons.close, size: 32),
                         ),
                         FloatingActionButton(
+                          heroTag: "super_like_button",
                           onPressed: () {
                             // Handle super like
                           },
@@ -259,6 +261,7 @@ class _SwipeCardsScreenState extends State<SwipeCardsScreen>
                           child: const Icon(Icons.star, size: 32),
                         ),
                         FloatingActionButton(
+                          heroTag: "like_button",
                           onPressed: _onSwipeRight,
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.green,

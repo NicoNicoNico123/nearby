@@ -368,6 +368,7 @@ class _ExploreScreenState extends State<ExploreScreen>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               FloatingActionButton(
+                heroTag: "explore_dislike_button",
                 onPressed: () => _onSwipeLeft(
                   _demoProfiles[_currentProfileIndex].id,
                 ),
@@ -377,6 +378,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                 child: const Icon(Icons.close, size: 32),
               ),
               FloatingActionButton(
+                heroTag: "explore_like_button",
                 onPressed: () => _onSwipeRight(
                   _demoProfiles[_currentProfileIndex].id,
                 ),

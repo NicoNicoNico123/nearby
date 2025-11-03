@@ -1,4 +1,6 @@
 // lib/core/network/hive_service.dart
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:dartz/dartz.dart';
@@ -9,11 +11,22 @@ class HiveService {
   static const String _userBox = 'user_box';
   static const String _tokenBox = 'token_box';
 
+  // Fallback storage for web when Hive fails
+  static String? _webToken;
+  static UserHiveModel? _webUser;
+
   static Future<void> init() async {
     try {
-      final appDocumentDir =
-          await path_provider.getApplicationDocumentsDirectory();
-      await Hive.initFlutter(appDocumentDir.path);
+      // Initialize Hive differently for web vs mobile
+      if (kIsWeb) {
+        // For web, use in-memory storage
+        await Hive.initFlutter();
+      } else {
+        // For mobile/desktop, use file system
+        final appDocumentDir =
+            await path_provider.getApplicationDocumentsDirectory();
+        await Hive.initFlutter(appDocumentDir.path);
+      }
 
       // Register adapters
       Hive.registerAdapter(UserHiveModelAdapter());
@@ -26,7 +39,12 @@ class HiveService {
       print('[HiveService] Initialized successfully'); // Debug log
     } catch (e) {
       print('[HiveService] Initialization failed: $e'); // Debug log
-      throw const CacheFailure('Failed to initialize Hive');
+      // On web, if Hive fails, we'll continue without local storage
+      if (!kIsWeb) {
+        throw const CacheFailure('Failed to initialize Hive');
+      } else {
+        print('[HiveService] Continuing without local storage on web'); // Debug log
+      }
     }
   }
 
@@ -51,7 +69,13 @@ class HiveService {
       print('[HiveService] Token cached successfully: $token'); // Debug log
     } catch (e) {
       print('[HiveService] Failed to cache token: $e'); // Debug log
-      throw const CacheFailure('Failed to cache auth token');
+      // On web, use fallback storage
+      if (kIsWeb) {
+        _webToken = token;
+        print('[HiveService] Using web fallback for token: $token');
+      } else {
+        throw const CacheFailure('Failed to cache auth token');
+      }
     }
   }
 
@@ -62,6 +86,11 @@ class HiveService {
       return token;
     } catch (e) {
       print('[HiveService] Failed to get token: $e'); // Debug log
+      // On web, use fallback storage
+      if (kIsWeb) {
+        print('[HiveService] Using web fallback token: $_webToken');
+        return _webToken;
+      }
       throw const CacheFailure('Failed to get auth token');
     }
   }
@@ -74,7 +103,13 @@ class HiveService {
       ); // Debug log
     } catch (e) {
       print('[HiveService] Failed to cache user: $e'); // Debug log
-      throw const CacheFailure('Failed to cache user');
+      // On web, use fallback storage
+      if (kIsWeb) {
+        _webUser = user;
+        print('[HiveService] Using web fallback for user: ${user.email}');
+      } else {
+        throw const CacheFailure('Failed to cache user');
+      }
     }
   }
 
@@ -85,6 +120,11 @@ class HiveService {
       return user != null ? optionOf(user) : none();
     } catch (e) {
       print('[HiveService] Failed to get cached user: $e'); // Debug log
+      // On web, use fallback storage
+      if (kIsWeb) {
+        print('[HiveService] Using web fallback user: ${_webUser?.email}');
+        return _webUser != null ? optionOf(_webUser!) : none();
+      }
       return none();
     }
   }
@@ -96,7 +136,12 @@ class HiveService {
       print('[HiveService] Cleared cached user and token'); // Debug log
     } catch (e) {
       print('[HiveService] Failed to clear cached user: $e'); // Debug log
-      throw const CacheFailure('Failed to clear cached user');
+    }
+    // Always clear fallback storage on web
+    if (kIsWeb) {
+      _webUser = null;
+      _webToken = null;
+      print('[HiveService] Cleared web fallback storage');
     }
   }
 

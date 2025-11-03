@@ -5,6 +5,9 @@ import 'package:ilike/core/utils/validation_utils.dart';
 import 'package:ilike/features/auth/presentation/bloc/auth.dart';
 import 'package:ilike/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:ilike/features/auth/presentation/widgets/password_field.dart';
+import 'package:ilike/features/auth/domain/entities/user_entity.dart';
+import 'package:ilike/features/auth/data/models/user_hive_model.dart';
+import 'package:ilike/core/network/hive_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -40,6 +43,33 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+  }
+
+  void _onDemoModePressed() {
+    // Cache demo user and token locally first
+    final demoUser = UserEntity(
+      id: 'demo-user-123',
+      email: 'demo@ilike.com',
+      username: 'Demo User',
+      token: 'demo-token-123',
+      password: 'demo-password-123',
+      hasCompletedProfile: true,
+    );
+
+    // Store demo user in Hive for authentication checks
+    HiveService.cacheUser(UserHiveModel.fromEntity(demoUser));
+    HiveService.cacheAuthToken('demo-token-123');
+
+    // Trigger AuthBloc to update state to Authenticated
+    context.read<AuthBloc>().add(
+      UpdateUserEvent(demoUser),
+    );
+
+    // Auto-fill demo credentials
+    _emailController.text = 'demo@ilike.com';
+    _passwordController.text = 'demo-password-123';
+
+    // Navigate will be handled by AuthBloc listener
   }
 
   void _navigateToRegister() {
@@ -126,6 +156,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
 
                     const SizedBox(height: 24.0),
+
+                    // Demo Mode Button
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 16.0),
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _onDemoModePressed,
+                        icon: const Icon(Icons.play_circle_outline),
+                        label: const Text('Try Demo Mode'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          textStyle: const TextStyle(fontSize: 16.0),
+                          side: BorderSide(color: Colors.purple.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                      ),
+                    ),
 
                     // Login Button
                     ElevatedButton(

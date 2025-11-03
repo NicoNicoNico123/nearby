@@ -6,6 +6,8 @@ import 'package:ilike/features/home/presentation/pages/home_screen.dart';
 import 'package:ilike/core/service_locator/service_locator.dart';
 import 'package:ilike/features/profile/domain/repositories/profile_repository.dart';
 import 'package:ilike/features/auth/domain/entities/user_entity.dart';
+import 'package:ilike/features/auth/data/models/user_hive_model.dart';
+import 'package:ilike/core/network/hive_service.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -18,8 +20,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   void initState() {
     super.initState();
-    // Check if user is already authenticated
-    context.read<AuthBloc>().add(CheckAuthStatusEvent());
+    // For demo mode: Automatically authenticate with demo user
+    _initDemoMode();
+  }
+
+  void _initDemoMode() {
+    // Don't auto-login - let user choose demo mode from login screen
+    print('[AuthWrapper] Demo mode available - use "Try Demo Mode" button on login screen');
   }
 
   @override
