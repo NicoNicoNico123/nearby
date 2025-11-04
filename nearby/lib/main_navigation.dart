@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../screens/feed/feed_screen.dart';
 import '../screens/discover_page/discover_screen.dart';
-import '../screens/messaging/messaging_screen.dart';
+import '../screens/messaging/chat_room_list_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/welcome/welcome_screen.dart';
 import '../widgets/custom_bottom_nav.dart';
@@ -22,7 +22,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = [
     const FeedScreen(),
     const DiscoverScreen(),
-    const MessagingScreen(),
+    const ChatRoomListScreen(),
     const SettingsScreen(),
   ];
 
