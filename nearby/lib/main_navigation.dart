@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../screens/discover_page/discover_screen.dart';
+import '../theme/app_theme.dart';
 import '../screens/feed/feed_screen.dart';
-import '../screens/user_profile/profile_screen.dart';
+import '../screens/discover_page/discover_screen.dart';
+import '../screens/messaging/messaging_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/welcome/welcome_screen.dart';
+import '../widgets/custom_bottom_nav.dart';
 import '../utils/logger.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -18,36 +20,19 @@ class _MainNavigationState extends State<MainNavigation> {
   bool _showWelcomeScreen = true;
 
   final List<Widget> _screens = [
-    const DiscoverScreen(),
     const FeedScreen(),
-    const ProfileScreen(),
+    const DiscoverScreen(),
+    const MessagingScreen(),
     const SettingsScreen(),
   ];
 
-  final List<BottomNavigationBarItem> _bottomNavItems = [
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.explore),
-      label: 'Discover',
-    ),
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.home),
-      label: 'Feed',
-    ),
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.person),
-      label: 'Profile',
-    ),
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.settings),
-      label: 'Settings',
-    ),
-  ];
+  final List<String> _navLabels = ['Feed', 'Discover', 'Chat', 'Settings'];
 
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
-    Logger.info('Navigated to ${_bottomNavItems[index].label}');
+    Logger.info('Navigated to ${_navLabels[index]}');
   }
 
   void _completeOnboarding() {
@@ -70,11 +55,10 @@ class _MainNavigationState extends State<MainNavigation> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
+      backgroundColor: AppTheme.backgroundColor, // Dark background
+      bottomNavigationBar: CustomBottomNavigation(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
-        items: _bottomNavItems,
-        type: BottomNavigationBarType.fixed,
       ),
     );
   }

@@ -18,7 +18,13 @@ void main() {
     await tester.tap(find.text('Get Started'));
     await tester.pumpAndSettle();
 
-    // Verify that we're now on the main navigation (discover screen should be visible).
-    expect(find.text('Discover Screen - Coming Soon'), findsOneWidget);
+    // Verify that we're now on the main navigation (feed should be visible by default).
+    expect(find.text('Feed'), findsAtLeastNWidgets(1));
+    expect(find.text('Discover'), findsAtLeastNWidgets(1));
+    expect(find.text('Chat'), findsAtLeastNWidgets(1));
+    expect(find.text('Settings'), findsAtLeastNWidgets(1));
+
+    // Since Feed is now the default screen, verify it's loaded
+    expect(find.text('Today\'s Recommendations'), findsOneWidget);
   });
 }
