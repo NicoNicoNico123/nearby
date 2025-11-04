@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4A90E2",
+            "background-light": "#F9F9F9",
+            "background-dark": "#161022",
+          },
+          fontFamily: {
+            "display": ["Plus Jakarta Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 p-4 pb-3 backdrop-blur-sm dark:bg-background-dark/80">
+<div class="flex size-10 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-gray-800 dark:text-white">arrow_back_ios_new</span>
+</div>
+<h1 class="flex-1 text-center text-lg font-bold text-gray-900 dark:text-white">Settings</h1>
+<div class="w-10 shrink-0"></div>
+</header>
+<main class="flex-1 px-4 pt-4">
+<!-- Profile Summary Card -->
+<div class="mb-8 flex items-center gap-4 rounded-lg bg-white/50 p-4 dark:bg-white/5">
+<div class="h-16 w-16 shrink-0 rounded-full bg-cover bg-center" data-alt="User's profile avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAJBjZpzOXhza3InmGTtIHutaGrgp3MYHChivDZseCc9upsluIRmfiPMBz1JaCVk0Q-LCZQk-Uul-mOShkCBpWRTLNVb6kmq3qtWvH_k1UdM8CYpIwflTqt4x-DUk8wMNUo3PoxED1ByfRqK6JpQrOI8JLKtxRpZI0d6Nt56bBCeNQ2jOp_hxV90bN7-Zotb-qHqiP8aUELOGRFurEVvoseYqvU9O1NsJFfmdtPc-LTQ3KClhmnGtoosrD3Ruex0VTD-B3tbW5kUItg');"></div>
+<div class="flex flex-col">
+<p class="text-lg font-bold text-gray-900 dark:text-white">Alex Johnson</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">@alex_j</p>
+</div>
+</div>
+<!-- Settings Sections -->
+<div class="space-y-6">
+<!-- Account Section -->
+<div>
+<h3 class="px-2 pb-2 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Account</h3>
+<div class="flex flex-col overflow-hidden rounded-lg bg-white/50 dark:bg-white/5">
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Edit Profile</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+<div class="mx-4 h-px bg-gray-200 dark:bg-gray-700"></div>
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">key</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Change Password</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+<div class="mx-4 h-px bg-gray-200 dark:bg-gray-700"></div>
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">link</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Linked Accounts</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- App Preferences Section -->
+<div>
+<h3 class="px-2 pb-2 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">App Preferences</h3>
+<div class="flex flex-col overflow-hidden rounded-lg bg-white/50 dark:bg-white/5">
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Notifications</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+<div class="mx-4 h-px bg-gray-200 dark:bg-gray-700"></div>
+<div class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">dark_mode</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Dark Mode</p>
+</div>
+<label class="relative inline-flex cursor-pointer items-center">
+<input checked="" class="peer sr-only" type="checkbox" value=""/>
+<div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:border-gray-600 dark:bg-gray-700"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Privacy & Security Section -->
+<div>
+<h3 class="px-2 pb-2 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Privacy &amp; Security</h3>
+<div class="flex flex-col overflow-hidden rounded-lg bg-white/50 dark:bg-white/5">
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Privacy Settings</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+<div class="mx-4 h-px bg-gray-200 dark:bg-gray-700"></div>
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">block</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Blocked Users</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- Support Section -->
+<div>
+<h3 class="px-2 pb-2 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Support &amp; Legal</h3>
+<div class="flex flex-col overflow-hidden rounded-lg bg-white/50 dark:bg-white/5">
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">help_center</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Help Center</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+<div class="mx-4 h-px bg-gray-200 dark:bg-gray-700"></div>
+<a class="flex min-h-[56px] items-center justify-between gap-4 px-4 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5" href="#">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">gavel</span>
+</div>
+<p class="text-base text-gray-800 dark:text-gray-200">Terms of Service</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+</a>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Actions -->
+<footer class="px-4 py-8">
+<div class="space-y-3">
+<button class="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-base font-bold text-gray-800 transition-colors hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-white/10">
+<span class="material-symbols-outlined">logout</span>
+          Log Out
+        </button>
+<button class="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-base font-bold text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-500">
+<span class="material-symbols-outlined">delete_forever</span>
+          Delete Account
+        </button>
+</div>
+</footer>
+</div>
+</body></html>

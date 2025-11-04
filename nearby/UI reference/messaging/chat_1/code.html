@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Messages</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#5b13ec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#161022",
+              "accent-green": "#34C759",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between bg-background-light/80 px-4 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-slate-800 dark:text-slate-200">
+<span class="material-symbols-outlined">search</span>
+</button>
+<h1 class="text-lg font-bold text-slate-900 dark:text-white">Messages</h1>
+<button class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-slate-800 dark:text-slate-200">
+<span class="material-symbols-outlined">add_comment</span>
+</button>
+</header>
+<!-- Main Content: Chat List -->
+<main class="flex-1 overflow-y-auto">
+<div class="flex flex-col">
+<!-- Chat Item 1: Unread DM -->
+<div class="flex cursor-pointer items-center gap-4 px-4 py-3 hover:bg-slate-500/10">
+<div class="relative shrink-0">
+<div class="h-14 w-14 rounded-full bg-cover bg-center bg-no-repeat" data-alt="Profile picture of a woman with red hair" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCZ2vPvMLP_wsBrOGdPjJ1QtY5xfZEq-JRV7SSM-b4FLk_lrliMMfEp8aFOzk4Ob2az5Trj4h-tzXvFdlrIfCYMjdHn1TaIvGTL06HCbaG2P9nYPvTqs7x-xxJf8bdFKPugvVHqYK37WD_VK9CWd9sFiLEF00v8QDzAfZ2HQCE-lDszsXTXkvIAkzNnRLZ_CIJ2FrcckMliLLsDaBoeosXiYx0W2rGdUC-gUFSt5hmOmXmcrviKxc1KY0zsp2VDWyWRwkdxc8NL8aKp");'></div>
+<div class="absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-background-light bg-accent-green dark:border-background-dark"></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<p class="truncate font-bold text-slate-900 dark:text-white">Elena Rodriguez</p>
+<p class="text-xs font-medium text-primary">11:35 AM</p>
+</div>
+<div class="flex items-center justify-between">
+<p class="truncate text-sm text-slate-500 dark:text-slate-400">Sounds good! See you then.</p>
+<div class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary">
+<span class="text-xs font-bold text-white">1</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Item 2: Group Chat -->
+<div class="flex cursor-pointer items-center gap-4 px-4 py-3 hover:bg-slate-500/10">
+<div class="shrink-0">
+<div class="h-14 w-14 rounded-full bg-cover bg-center bg-no-repeat" data-alt="A group of hands together, symbolizing teamwork" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB32ZjLiITlZox5qjHileVjQjq_2SSY2ubAM_zI9CCFDO06AI0gcpI9fzYjXDpT3UDdw4Xa5QEOWVT5RMmyL271LsqOethWxiDXWvVFbBndUbjhghwRqAAnlUJgWpUFlvlNyzfRBLIH31bYXmDAFRZaXtQ67guUq6RXFWggKlL0I4e4FFglPv5Hc_xpIWJXoLplHXbN3t2H-KXrSOg24c24ijVBpwxP5t3VpvyPy_-iWwAkBGumGAv094zr61xFlqsrNrp5joh2J7b7");'></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<p class="truncate font-bold text-slate-900 dark:text-white">Design Team</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">10:42 AM</p>
+</div>
+<p class="truncate text-sm text-slate-500 dark:text-slate-400">Marcus: Don't forget the meeting at 3 PM.</p>
+</div>
+</div>
+<!-- Chat Item 3: Older DM -->
+<div class="flex cursor-pointer items-center gap-4 px-4 py-3 hover:bg-slate-500/10">
+<div class="shrink-0">
+<div class="h-14 w-14 rounded-full bg-cover bg-center bg-no-repeat" data-alt="Profile picture of a man with a beard" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDY213GMCdYOk5acyGzDOWjPYh30a1K9qI-wHlWMqtdTCV-utHMpAkCzO1XBDMW1q7YbLpomu9JqOtnldbpqf8Ft2YCRssfubTXXvVGssqqKcfXk9MuA-wqITQcPeYCqhfqThmI9F7zrKgbzartwK2-pAbix1h2AEg8l9wKBoA-VgM1L4dozhXSTJAgV3n3ZyCq8MjK5bbCqJSSAb6xS7TEtuvSxBggfA_vIotUNbMvXdlWl5tKp4mv8px2KEwxCj8tLAm7fFlOMd5g");'></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<p class="truncate font-bold text-slate-900 dark:text-white">Liam Chen</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Yesterday</p>
+</div>
+<p class="truncate text-sm text-slate-500 dark:text-slate-400">Okay, I've sent the file over.</p>
+</div>
+</div>
+<!-- Chat Item 4: Group Chat with "You" -->
+<div class="flex cursor-pointer items-center gap-4 px-4 py-3 hover:bg-slate-500/10">
+<div class="shrink-0">
+<div class="h-14 w-14 rounded-full bg-cover bg-center bg-no-repeat" data-alt="A group of friends laughing together" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAWPde4opUcryW8gBi8eXCCs9xepdTfp0tramrtogw0jJcB9G1qAgfKujWcXQwQkK8viXy1KdfqrCN6mjwAZ76BZ456GomgshpS-YZ9g4PUuAz40xyr6s10nEjxwo15eACcjbyCNP3sDyR0n4gKcqzlYDO8ExYS6ssQBsCEmf8oJn9hh2ez8jR4pZL2LFqKs5Lo1huqyHGy-1Ri-c2DlXg6ZoVh3NwjF4QZTyZ-AJotA9qwUV36wUtLJePfHT0x5t7i-IgpFmdu5E-P");'></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<p class="truncate font-bold text-slate-900 dark:text-white">Weekend Hangout</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Wednesday</p>
+</div>
+<p class="truncate text-sm text-slate-500 dark:text-slate-400">You: Are we still on for Saturday?</p>
+</div>
+</div>
+<!-- Chat Item 5: Another DM -->
+<div class="flex cursor-pointer items-center gap-4 px-4 py-3 hover:bg-slate-500/10">
+<div class="relative shrink-0">
+<div class="h-14 w-14 rounded-full bg-cover bg-center bg-no-repeat" data-alt="Profile picture of a woman smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDcT6bIJYrCfI0AuByz_VB0Jz-edfaOGYYQl4gKwJcdlpGfaYmhj8qfkHaeSmEem-g_G5b8aODjaOCPtqQFpAs3wW49g_RFQaDSF6oq02f9q-d_Zl-Tr4bsi0zBJYhdS_QqTON8c9tPxrdmWa_EYOrP-WUUvOhPfaIlK4sF1NdsY30e0FnzmvKkE7h785O2pyS5XeI4XFN9gLoygfcpv_SfXVcTmWiMo6-QYRj45PeqCl-7W0WDTaLl_wAonVrZG3bGd3T-9AyA13vp");'></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<p class="truncate font-bold text-slate-900 dark:text-white">Sophia Miller</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Tuesday</p>
+</div>
+<p class="truncate text-sm text-slate-500 dark:text-slate-400">That's hilarious! 😂</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="sticky bottom-0 z-10 flex h-20 items-center justify-around border-t border-slate-200 bg-background-light/90 backdrop-blur-sm dark:border-slate-800 dark:bg-background-dark/90">
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-xs font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-xs font-medium">Discover</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-xs font-bold">Chats</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-xs font-medium">Profile</span>
+</a>
+</nav>
+</div>
+</body></html>

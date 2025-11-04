@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ConnectApp - Your New Community Awaits</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+      }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#00a99d", /* Teal Blue */
+              "background-light": "#f6f6f8",
+              "background-dark": "#161022",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<!-- Header Section -->
+<header class="sticky top-0 z-10 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+<div class="flex items-center p-4">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-2xl">
+                    forum
+                </span>
+</div>
+<h2 class="text-slate-800 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 pl-3">ConnectApp</h2>
+<div class="flex w-auto items-center justify-end">
+<button class="text-slate-800 dark:text-white text-base font-bold leading-normal tracking-[0.015em] shrink-0 px-4 py-2 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">Log In</button>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!-- Hero Section -->
+<section class="px-4 text-center py-8">
+<h1 class="text-slate-900 dark:text-white tracking-tight text-4xl font-bold leading-tight pb-3">Your New Community Awaits</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-normal max-w-md mx-auto">
+                Connect with like-minded individuals through shared interests and authentic conversations.
+            </p>
+</section>
+<!-- Hero Visual -->
+<section class="px-4">
+<div class="flex w-full grow @container">
+<div class="w-full overflow-hidden @[480px]:gap-2 aspect-[4/3] flex rounded-xl">
+<div class="w-full bg-center bg-no-repeat bg-cover aspect-auto flex-1" data-alt="Vibrant abstract gradient with teal, purple, and orange hues representing community connections" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBn6KhQsjsfFDwNwxvZh1hthAPAXnPmEc0Zu8B9EsmrqORbfVDvgcJKhNOEXteQuxd8X1wQGIROhobFA6CBwN8vpjfI2986Q8XYurBizaAKGDUEZOYKTfrUkJDVsF1jKmvEq9Ydgka8e5jvdeaJy30cX0zq9CvjOeJ3wZKNMOTZasfxwaEHlfgFyZIHmf7EPkgq_8sKTun8a_1ObmHdGTiKv2c4gHgyB4lWdTTniXfWy9y4HtlqgisfL3bpjuNvx0Zcnu5_BerxYJl0");'></div>
+</div>
+</div>
+</section>
+<!-- Feature Highlight Cards -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 mt-8">
+<div class="flex flex-1 gap-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 flex-col text-center items-center">
+<div class="flex items-center justify-center size-12 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">
+                        handshake
+                    </span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-slate-900 dark:text-white text-base font-bold leading-tight">Authentic Connections</h2>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-normal leading-normal">Connect anonymously based on your shared interests.</p>
+</div>
+</div>
+<div class="flex flex-1 gap-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 flex-col text-center items-center">
+<div class="flex items-center justify-center size-12 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">
+                        groups
+                    </span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-slate-900 dark:text-white text-base font-bold leading-tight">Vibrant Communities</h2>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-normal leading-normal">Find and join groups that match your passions.</p>
+</div>
+</div>
+<div class="flex flex-1 gap-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 flex-col text-center items-center sm:col-span-2 lg:col-span-1">
+<div class="flex items-center justify-center size-12 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">
+                        edit_square
+                    </span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-slate-900 dark:text-white text-base font-bold leading-tight">Share Your Story</h2>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-normal leading-normal">Share your thoughts, photos, and ideas with others.</p>
+</div>
+</div>
+</section>
+<!-- Social Proof/Testimonial Section -->
+<section class="px-4 py-8">
+<div class="bg-primary/20 rounded-lg p-6 text-center">
+<p class="text-primary font-bold italic text-lg">"I've met so many amazing people here who share my hobbies. It's my go-to app for genuine connection!"</p>
+<div class="flex items-center justify-center mt-4 gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Avatar of a smiling user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa2Cx4DBLExnEGFTIV-vULfAO6zc2U2eq-hJBr6spXdx_lGy6K9N2InUco5z6CRDqN0QrCFGqfHRgON72qCFzd6RX7k5IqV1NrTOBPHr_k1REUmwKPkGlHHmeQBrl-K9JmBa1gfLxDQfDHv4o2rClfae8wAqB6CRXNCu0pFG_200f4pv5HBYRG2l1QUR5KFlsNmExVOD255mzodccP0PTmsxRwr0ggdnazPX5gE4sqb0JCpV6Cz2sDIF9FRA3tDB5x2P3r-epMqW_V"/>
+<p class="text-slate-800 dark:text-white font-semibold">- Alex R.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- CTA Footer -->
+<footer class="sticky bottom-0 w-full p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800">
+<div class="flex flex-col items-center gap-4">
+<button class="w-full bg-primary text-white font-bold py-4 px-6 rounded-full hover:bg-primary/90 transition-colors text-lg">
+                Get Started
+            </button>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:underline" href="#">Privacy Policy</a>
+</div>
+</footer>
+</div>
+</body></html>

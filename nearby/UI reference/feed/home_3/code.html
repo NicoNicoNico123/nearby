@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create Group</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#5b13ec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#161022",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "'Noto Sans TC'", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden" style='font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif;'>
+<div class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm p-4 border-b border-gray-200 dark:border-white/10">
+<button class="text-black dark:text-white flex items-center">
+<span class="material-symbols-outlined text-3xl">close</span>
+</button>
+<h1 class="text-lg font-bold">Create Group</h1>
+<div class="flex items-center gap-2">
+<button class="text-primary font-bold text-lg">Post</button>
+</div>
+</div>
+<main class="flex-1 pb-24 px-4 pt-6">
+<div class="space-y-6">
+<div>
+<h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Required Settings</h2>
+<div class="space-y-4 bg-white dark:bg-white/5 p-4 rounded-lg">
+<div class="flex items-start">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 mr-3 mt-1">description</span>
+<textarea class="w-full bg-transparent border-0 focus:ring-0 p-0 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none" id="group_description" placeholder="Write an engaging description to attract participants..." rows="3"></textarea>
+</div>
+<hr class="border-gray-200 dark:border-white/10"/>
+<div class="flex items-center">
+<label class="flex items-center w-full cursor-pointer" for="restaurant_location">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 mr-3">restaurant</span>
+<input class="w-full bg-transparent border-0 focus:ring-0 p-0 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" id="restaurant_location" placeholder="Restaurant Location" type="text"/>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500 ml-3">chevron_right</span>
+</label>
+</div>
+<hr class="border-gray-200 dark:border-white/10"/>
+<div class="flex items-center">
+<label class="flex items-center w-full cursor-pointer" for="date">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 mr-3">calendar_today</span>
+<input class="w-full bg-transparent border-0 focus:ring-0 p-0 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" id="date" placeholder="Date" type="text"/>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500 ml-3">chevron_right</span>
+</label>
+</div>
+<hr class="border-gray-200 dark:border-white/10"/>
+<div class="flex items-center">
+<label class="flex items-center w-full cursor-pointer" for="time">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 mr-3">schedule</span>
+<input class="w-full bg-transparent border-0 focus:ring-0 p-0 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" id="time" placeholder="Time" type="text"/>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500 ml-3">chevron_right</span>
+</label>
+</div>
+<hr class="border-gray-200 dark:border-white/10"/>
+<div class="flex items-center justify-between">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 mr-3">group</span>
+<span class="text-gray-900 dark:text-white">People Limit</span>
+</div>
+<div class="flex items-center space-x-3">
+<button class="bg-gray-200 dark:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center text-gray-700 dark:text-gray-300">-</button>
+<span class="font-medium text-lg w-8 text-center">4</span>
+<button class="bg-primary rounded-full w-8 h-8 flex items-center justify-center text-white">+</button>
+</div>
+</div>
+</div>
+</div>
+<div>
+<h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Optional Settings</h2>
+<div class="space-y-4">
+<div class="bg-white dark:bg-white/5 p-4 rounded-lg">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 p-0 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none" id="optional_details" placeholder="Add further details about the group (optional)..." rows="3"></textarea>
+</div>
+<div class="bg-white dark:bg-white/5 p-4 rounded-lg">
+<div class="flex flex-col">
+<label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" for="group-image-upload">
+<div class="flex flex-col items-center justify-center pt-5 pb-6">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-3xl">add_photo_alternate</span>
+<p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Upload an image</span></p>
+<p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG (MAX. 5MB)</p>
+</div>
+<input class="hidden" id="group-image-upload" type="file"/>
+</label>
+</div>
+</div>
+<div class="bg-white dark:bg-white/5 p-4 rounded-lg divide-y divide-gray-200 dark:divide-white/10">
+<div class="flex items-center justify-between py-2">
+<label class="text-gray-900 dark:text-white" for="approval-toggle">Approved by Creator</label>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" id="approval-toggle" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-white/20 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-2">
+<label class="text-gray-900 dark:text-white" for="waiting-list-toggle">Allow Waiting List</label>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" id="waiting-list-toggle" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-white/20 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<div class="bg-white dark:bg-white/5 p-4 rounded-lg">
+<div class="flex items-center justify-between mb-3">
+<label class="block text-gray-700 dark:text-gray-300 font-medium">Gender Setting</label>
+<span class="text-gray-400 dark:text-gray-500 text-sm">Any</span>
+</div>
+<div class="flex space-x-2">
+<button class="flex-1 py-2 px-4 rounded-full bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-sm">Male</button>
+<button class="flex-1 py-2 px-4 rounded-full bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-sm">Female</button>
+<button class="flex-1 py-2 px-4 rounded-full bg-primary text-white text-sm">Any</button>
+</div>
+</div>
+<div class="bg-white dark:bg-white/5 p-4 rounded-lg">
+<div class="flex items-center justify-between mb-4">
+<label class="block text-gray-700 dark:text-gray-300 font-medium">Age Range</label>
+<span class="text-gray-400 dark:text-gray-500 text-sm">18 - 35</span>
+</div>
+<div class="relative h-1 bg-gray-200 dark:bg-white/10 rounded-full">
+<div class="absolute h-1 bg-primary rounded-full" style="left: 10%; width: 50%;"></div>
+<div class="absolute -top-1.5 w-4 h-4 rounded-full bg-white dark:bg-gray-300 border-2 border-primary" style="left: 10%;"></div>
+<div class="absolute -top-1.5 w-4 h-4 rounded-full bg-white dark:bg-gray-300 border-2 border-primary" style="left: 60%;"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-white/5 p-4 rounded-lg">
+<div class="flex items-center justify-between mb-3">
+<label class="block text-gray-700 dark:text-gray-300 font-medium">Interests</label>
+<button class="text-primary text-sm font-medium">Add Interests</button>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="bg-primary/10 text-primary py-1 px-3 rounded-full text-sm flex items-center gap-1">Travel<button class="material-symbols-outlined !text-sm">close</button></span>
+<span class="bg-primary/10 text-primary py-1 px-3 rounded-full text-sm flex items-center gap-1">Movie<button class="material-symbols-outlined !text-sm">close</button></span>
+<span class="bg-primary/10 text-primary py-1 px-3 rounded-full text-sm flex items-center gap-1">Food<button class="material-symbols-outlined !text-sm">close</button></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

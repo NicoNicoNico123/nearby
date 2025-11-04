@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#5b13ec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#161022",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-slate-800 dark:text-white flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</div>
+<h2 class="text-slate-800 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">alexandra_d</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-slate-800 dark:text-white gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+<span class="material-symbols-outlined text-2xl">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="flex p-4 @container">
+<div class="flex w-full flex-col gap-4 items-center">
+<div class="flex gap-4 flex-col items-center">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32" data-alt="A portrait of Alexandra Davis" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAq4Yqr0He_dArkXRyVGz8bkLI9FelU19opoeoE4wmgtjKI3eMOgbGrdHSmWWtSQ26kRd5dITyoOCj24wWLs9xQSyoeC2nsI_nNRYdHG5CZm7qsNH5lo4xB9XYIcGaHhZxrfN9JvmHwS6uKcuib7EeLJC0ljHJ2JR7eBCPhXsfBYX1JHrZvuRc7iFAOhSxFFrOTtActJ6X-kPiUwd9q9Vnk22YzStkFdQg5HzIi5tdp2RimrF62IM8wpQsubApbH660bp2FT1NOTIvn");'></div>
+<button class="absolute bottom-1 right-1 flex items-center justify-center size-8 rounded-full bg-primary text-white">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+</div>
+<div class="flex flex-col items-center justify-center gap-1">
+<p class="text-slate-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] text-center">Alexandra Davis</p>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal text-center">@alexandra_d</p>
+<p class="text-slate-600 dark:text-slate-300 text-base font-normal leading-normal text-center max-w-sm pt-2">Lover of coffee and minimalist design. Exploring the world one city at a time.</p>
+</div>
+</div>
+<div class="flex w-full max-w-sm gap-3 @[480px]:w-auto">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto">
+<span class="truncate">Edit Profile</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto">
+<span class="truncate">Share Profile</span>
+</button>
+</div>
+</div>
+</div>
+<div class="px-4">
+<div class="bg-slate-100 dark:bg-slate-800/50 rounded-lg p-4">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Interests</h3>
+<div class="flex gap-2 flex-wrap">
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 pl-4 pr-4">
+<p class="text-primary text-sm font-medium leading-normal">design</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 pl-4 pr-4">
+<p class="text-primary text-sm font-medium leading-normal">travel</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 pl-4 pr-4">
+<p class="text-primary text-sm font-medium leading-normal">photography</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 pl-4 pr-4">
+<p class="text-primary text-sm font-medium leading-normal">coffee</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 pl-4 pr-4">
+<p class="text-primary text-sm font-medium leading-normal">minimalism</p>
+</div>
+</div>
+<div class="grid grid-cols-[auto_1fr] gap-x-6 mt-4">
+<div class="col-span-2 grid grid-cols-subgrid border-t border-t-slate-200 dark:border-t-slate-700 py-4 items-center">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">Location</p>
+<p class="text-slate-900 dark:text-white text-sm font-normal leading-normal text-right">San Francisco, CA</p>
+</div>
+<div class="col-span-2 grid grid-cols-subgrid border-t border-t-slate-200 dark:border-t-slate-700 py-4 items-center">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">Joined</p>
+<p class="text-slate-900 dark:text-white text-sm font-normal leading-normal text-right">December 2022</p>
+</div>
+</div>
+</div>
+</div>
+<div class="h-10"></div>
+</div>
+</body></html>
