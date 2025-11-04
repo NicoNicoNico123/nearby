@@ -1,6 +1,7 @@
 class User {
   final String id;
   final String name;
+  final String? username; // Handle like @alexandra_d
   final int? age;
   final String bio;
   final String imageUrl;
@@ -13,6 +14,7 @@ class User {
   const User({
     required this.id,
     required this.name,
+    this.username,
     this.age,
     this.bio = '',
     this.imageUrl = '',
@@ -26,6 +28,7 @@ class User {
   User copyWith({
     String? id,
     String? name,
+    String? username,
     int? age,
     String? bio,
     String? imageUrl,
@@ -38,6 +41,7 @@ class User {
     return User(
       id: id ?? this.id,
       name: name ?? this.name,
+      username: username ?? this.username,
       age: age ?? this.age,
       bio: bio ?? this.bio,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -53,6 +57,7 @@ class User {
     return {
       'id': id,
       'name': name,
+      'username': username,
       'age': age,
       'bio': bio,
       'imageUrl': imageUrl,
@@ -68,6 +73,7 @@ class User {
     return User(
       id: json['id'] as String,
       name: json['name'] as String,
+      username: json['username'] as String?,
       age: json['age'] as int?,
       bio: json['bio'] as String? ?? '',
       imageUrl: json['imageUrl'] as String? ?? '',
