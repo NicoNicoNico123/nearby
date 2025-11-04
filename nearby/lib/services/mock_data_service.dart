@@ -1,5 +1,6 @@
 import 'dart:math';
 import '../models/user_model.dart';
+import '../models/group_model.dart';
 import '../utils/logger.dart';
 
 class MockDataService {
@@ -8,6 +9,7 @@ class MockDataService {
   MockDataService._internal();
 
   final List<User> _users = [];
+  final List<Group> _groups = [];
   final Random _random = Random();
 
   List<User> getUsers() {
@@ -43,6 +45,20 @@ class MockDataService {
       Logger.warning('User not found: $id');
       return null;
     }
+  }
+
+  User getCurrentUser() {
+    // Return the current user (in a real app, this would come from auth service)
+    return const User(
+      id: 'current_user',
+      name: 'Alexandra Davis',
+      username: 'alexandra_d',
+      age: 28,
+      bio: 'Lover of coffee and minimalist design. Exploring the world one city at a time.',
+      imageUrl: 'https://picsum.photos/200/200?random=current',
+      interests: ['#Design', '#Travel', '#Photography', '#Coffee', '#Minimalism'],
+      isAvailable: true,
+    );
   }
 
   void _generateMockUsers() {
@@ -140,5 +156,106 @@ class MockDataService {
             user.lastSeen != null &&
             user.lastSeen!.isAfter(cutoff))
         .toList();
+  }
+
+  // Group related methods
+  List<Group> getGroups() {
+    if (_groups.isEmpty) {
+      _generateMockGroups();
+    }
+    return _groups;
+  }
+
+  Group? getGroupById(String id) {
+    try {
+      return getGroups().firstWhere((group) => group.id == id);
+    } catch (e) {
+      Logger.warning('Group not found: $id');
+      return null;
+    }
+  }
+
+  void _generateMockGroups() {
+    final groupNames = [
+      'Weekend Brunch Club',
+      'Tech Talk & Coffee',
+      'Pizza Lovers Meetup',
+      'Sushi Adventure',
+      'Wine Tasting Evening',
+      'Casual Friday Drinks',
+      'Italian Food Night',
+      'Mexican Fiesta',
+      'Healthy Food Explorers',
+      'Dessert Lovers Anonymous',
+    ];
+
+    final venues = [
+      'The Cozy Café',
+      'Sunset Restaurant',
+      'Downtown Bistro',
+      'Harbor View Eatery',
+      'Mountain View Diner',
+      'Urban Kitchen',
+      'Green Leaf Restaurant',
+      'Blue Moon Café',
+      'Golden Gate Grill',
+      'Riverside Tavern',
+    ];
+
+    final intents = ['dining', 'romantic', 'networking', 'friendship'];
+    final interestOptions = [
+      ['Italian', 'Wine', 'Coffee'],
+      ['Japanese', 'Sushi', 'Seafood'],
+      ['Mexican', 'Tacos', 'SpicyFood'],
+      ['Thai', 'Asian', 'Healthy'],
+      ['American', 'BBQ', 'Casual'],
+      ['Indian', 'Curry', 'Vegan'],
+      ['French', 'FineDining', 'Wine'],
+      ['Coffee', 'Brunch', 'Desserts'],
+      ['Pizza', 'Italian', 'Casual'],
+      ['Networking', 'Business', 'Cocktails'],
+    ];
+
+    for (int i = 0; i < groupNames.length; i++) {
+      final createdDate = DateTime.now().subtract(Duration(days: _random.nextInt(30)));
+      final mealTime = DateTime.now().add(Duration(hours: _random.nextInt(48) + 1));
+      final memberCount = _random.nextInt(8) + 2; // 2-10 members
+      final selectedInterest = interestOptions[_random.nextInt(interestOptions.length)];
+
+      _groups.add(Group(
+        id: 'group_${i + 1}',
+        name: groupNames[i],
+        description: _generateGroupDescription(groupNames[i]),
+        subtitle: '$memberCount people attending',
+        imageUrl: 'https://picsum.photos/400/300?random=group${i + 1}',
+        interests: selectedInterest,
+        memberCount: memberCount,
+        category: selectedInterest.first,
+        creatorId: 'user_${_random.nextInt(10) + 1}',
+        creatorName: 'Host User',
+        venue: venues[_random.nextInt(venues.length)],
+        mealTime: mealTime,
+        intent: intents[_random.nextInt(intents.length)],
+        maxMembers: 10,
+        memberIds: ['creator_user'], // In real app, this would contain actual user IDs
+        waitingList: _random.nextBool() ? ['user_${_random.nextInt(10) + 11}'] : [],
+        createdAt: createdDate,
+        location: 'San Francisco, CA',
+      ));
+    }
+
+    Logger.info('Generated ${_groups.length} mock groups');
+  }
+
+  String _generateGroupDescription(String groupName) {
+    final descriptions = [
+      'Join us for an amazing dining experience with great food and even better company!',
+      'A perfect opportunity to meet new people while enjoying delicious food.',
+      'Come and explore new culinary experiences with fellow food enthusiasts.',
+      'An evening of great conversation and fantastic cuisine awaits you.',
+      'Food, friends, and fun - what more could you ask for?',
+      'Discover new flavors and make new connections in a welcoming atmosphere.',
+    ];
+    return descriptions[_random.nextInt(descriptions.length)];
   }
 }

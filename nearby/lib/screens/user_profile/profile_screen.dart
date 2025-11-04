@@ -18,13 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   int _age = 28;
   String _selectedGender = 'Prefer not to say';
-  final List<String> _availableInterests = [
-    'Italian', 'Japanese', 'Mexican', 'Thai', 'Indian', 'French',
-    'Coffee', 'Wine', 'Cocktails', 'Brunch', 'Desserts', 'BBQ',
-    'Vegan', 'GlutenFree', 'SpicyFood', 'Seafood', 'Sushi',
-    'Pizza', 'Tacos', 'Ramen', 'Tapas', 'Fusion', 'FarmToTable',
-  ];
-  List<String> _selectedInterests = ['#Design', '#Travel', '#Photography', '#Coffee', '#Minimalism'];
+    List<String> _selectedInterests = ['#Design', '#Travel', '#Photography', '#Coffee', '#Minimalism'];
 
   // Individual editing states
   bool _isEditingName = false;
