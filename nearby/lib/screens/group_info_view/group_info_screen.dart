@@ -142,7 +142,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         const SizedBox(height: AppTheme.spacingMD),
         _buildFormField('Group Name', _nameController, 'Enter group name'),
         const SizedBox(height: AppTheme.spacingMD),
-        _buildFormField('Description', _descriptionController, 'Describe your group', maxLines: 3),
+        _buildFormField(
+          'Description',
+          _descriptionController,
+          'Describe your group',
+          maxLines: 3,
+        ),
         const SizedBox(height: AppTheme.spacingMD),
         _buildFormField('Venue', _venueController, 'Restaurant or location'),
         const SizedBox(height: AppTheme.spacingMD),
@@ -170,7 +175,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     );
   }
 
-  Widget _buildFormField(String label, TextEditingController controller, String hint, {int maxLines = 1}) {
+  Widget _buildFormField(
+    String label,
+    TextEditingController controller,
+    String hint, {
+    int maxLines = 1,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -217,7 +227,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             _formatDateTime(_mealTime),
             style: const TextStyle(color: AppTheme.textPrimary),
           ),
-          trailing: const Icon(Icons.chevron_right, color: AppTheme.textTertiary),
+          trailing: const Icon(
+            Icons.chevron_right,
+            color: AppTheme.textTertiary,
+          ),
           tileColor: AppTheme.surfaceColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusSM),
@@ -246,19 +259,21 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           ),
         ),
         const SizedBox(height: AppTheme.spacingSM),
-        ...intents.entries.map((entry) => RadioListTile<String>(
-          title: Text(entry.value),
-          value: entry.key,
-          groupValue: _selectedIntent,
-          onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _selectedIntent = value;
-              });
-            }
-          },
-          activeColor: AppTheme.primaryColor,
-        )),
+        ...intents.entries.map(
+          (entry) => RadioListTile<String>(
+            title: Text(entry.value),
+            value: entry.key,
+            groupValue: _selectedIntent,
+            onChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  _selectedIntent = value;
+                });
+              }
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
       ],
     );
   }
@@ -317,9 +332,23 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   Widget _buildInterestsSelector() {
     final availableInterests = [
-      'Italian', 'Japanese', 'Mexican', 'Thai', 'Indian', 'French',
-      'Coffee', 'Wine', 'Cocktails', 'Brunch', 'Desserts', 'BBQ',
-      'Vegan', 'GlutenFree', 'SpicyFood', 'Seafood', 'Sushi',
+      'Italian',
+      'Japanese',
+      'Mexican',
+      'Thai',
+      'Indian',
+      'French',
+      'Coffee',
+      'Wine',
+      'Cocktails',
+      'Brunch',
+      'Desserts',
+      'BBQ',
+      'Vegan',
+      'GlutenFree',
+      'SpicyFood',
+      'Seafood',
+      'Sushi',
     ];
 
     return Column(
@@ -336,7 +365,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             ),
             const SizedBox(width: AppTheme.spacingSM),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingSM, vertical: 2),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingSM,
+                vertical: 2,
+              ),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
@@ -375,7 +407,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               backgroundColor: AppTheme.surfaceColor,
               selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
               labelStyle: TextStyle(
-                color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
+                color: isSelected
+                    ? AppTheme.primaryColor
+                    : AppTheme.textPrimary,
               ),
             );
           }).toList(),
@@ -422,10 +456,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black.withValues(alpha: 0.7),
-              ],
+              colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
             ),
           ),
           child: Padding(
@@ -445,10 +476,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 const SizedBox(height: AppTheme.spacingSM),
                 Text(
                   _group.description,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -472,11 +500,23 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppTheme.spacingMD),
-            _buildInfoRow(Icons.schedule, 'Meal Time', _formatDateTime(_group.mealTime)),
+            _buildInfoRow(
+              Icons.schedule,
+              'Meal Time',
+              _formatDateTime(_group.mealTime),
+            ),
             _buildInfoRow(Icons.location_on, 'Venue', _group.venue),
             _buildInfoRow(Icons.person, 'Created by', _group.creatorName),
-            _buildInfoRow(Icons.people, 'Members', '${_group.memberCount}/${_group.maxMembers}'),
-            _buildInfoRow(Icons.category, 'Intent', _getIntentDisplay(_group.intent)),
+            _buildInfoRow(
+              Icons.people,
+              'Members',
+              '${_group.memberCount}/${_group.maxMembers}',
+            ),
+            _buildInfoRow(
+              Icons.category,
+              'Intent',
+              _getIntentDisplay(_group.intent),
+            ),
             const SizedBox(height: AppTheme.spacingMD),
             if (_group.interests.isNotEmpty) ...[
               const Text(
@@ -626,7 +666,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               ],
             ),
             // Add current user if not creator and not a member
-            if (!_group.isCreator(_currentUserId) && !_group.isMember(_currentUserId)) ...[
+            if (!_group.isCreator(_currentUserId) &&
+                !_group.isMember(_currentUserId)) ...[
               const SizedBox(height: AppTheme.spacingMD),
               const Divider(),
               const SizedBox(height: AppTheme.spacingMD),
@@ -746,26 +787,107 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         ] else if (_group.isInWaitingList(_currentUserId)) ...[
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
+            child: ElevatedButton(
               onPressed: _leaveWaitingList,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.withValues(alpha: 0.2),
+                foregroundColor: Colors.orange,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text('Leave Waiting List'),
             ),
           ),
         ] else ...[
-          if (_group.isFull) ...[
+          // Action buttons - Different based on availability
+          if (_group.availableSpots > 0) ...[
+            // Groups with availability - Show Join and Superlike buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: _joinGroup,
+                  borderRadius: BorderRadius.circular(28),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.favorite,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingMD),
+                InkWell(
+                  onTap: _showJoinConfirmation,
+                  borderRadius: BorderRadius.circular(28),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4AC7F0), Color(0xFF2196F3)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF4AC7F0).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.star,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            // Full groups - Show Waiting List button only
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _joinWaitingList,
-                child: const Text('Join Waiting List'),
-              ),
-            ),
-          ] else ...[
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _joinGroup,
-                child: const Text('Join Group'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.withValues(alpha: 0.2),
+                  foregroundColor: Colors.orange,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.access_time, size: 20),
+                    const SizedBox(width: AppTheme.spacingXS),
+                    Text('${_group.memberCount}/${_group.maxMembers}'),
+                    const SizedBox(width: AppTheme.spacingXS),
+                    const Text('Waiting List'),
+                  ],
+                ),
               ),
             ),
           ],
@@ -830,7 +952,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   void _createGroup() async {
-    if (_nameController.text.trim().isEmpty || _venueController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty ||
+        _venueController.text.trim().isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -914,6 +1037,108 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     }
   }
 
+  void _showJoinConfirmation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text(
+          'Join ${_group.name}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Joining this group will use:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.attach_money,
+                    color: AppTheme.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${_group.joinCost} points',
+                    style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.monetization_on,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Group pot: ${_group.groupPot} points',
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Host approval: ${_group.creatorId == _currentUserId ? "Not required (you are the host)" : "Required"}',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            child: const Text('Join'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      _joinGroup();
+    }
+  }
+
   void _leaveGroup() async {
     setState(() {
       _isLoading = true;
@@ -924,7 +1149,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     setState(() {
       _group = _group.copyWith(
         memberCount: _group.memberCount - 1,
-        memberIds: _group.memberIds.where((id) => id != _currentUserId).toList(),
+        memberIds: _group.memberIds
+            .where((id) => id != _currentUserId)
+            .toList(),
       );
       _isLoading = false;
     });
@@ -958,7 +1185,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Added to waiting list. You\'ll be notified when a spot opens!'),
+          content: Text(
+            'Added to waiting list. You\'ll be notified when a spot opens!',
+          ),
           backgroundColor: AppTheme.primaryColor,
         ),
       );
@@ -974,7 +1203,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
     setState(() {
       _group = _group.copyWith(
-        waitingList: _group.waitingList.where((id) => id != _currentUserId).toList(),
+        waitingList: _group.waitingList
+            .where((id) => id != _currentUserId)
+            .toList(),
       );
       _isLoading = false;
     });
@@ -995,7 +1226,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancel Group'),
-        content: const Text('Are you sure you want to cancel this group? This action cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to cancel this group? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),

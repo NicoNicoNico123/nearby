@@ -7,8 +7,13 @@ import 'services/mock_data_service.dart';
 import 'utils/navigation_service.dart';
 import 'utils/logger.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   Logger.info('Starting Nearby app');
+
+  // Initialize mock data service and simulate user activity
+  await MockDataService().simulateUserActivity();
+
   runApp(const NearbyApp());
 }
 

@@ -7,6 +7,7 @@ class GroupCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLike;
   final VoidCallback? onSuperlike;
+  final VoidCallback? onLocationTap;
   final bool isHorizontal;
 
   const GroupCard({
@@ -15,6 +16,7 @@ class GroupCard extends StatelessWidget {
     this.onTap,
     this.onLike,
     this.onSuperlike,
+    this.onLocationTap,
     this.isHorizontal = false,
   });
 
@@ -216,22 +218,33 @@ class GroupCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppTheme.spacingXS),
                   // Location info
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 14,
-                        color: AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        group.venue,
-                        style: const TextStyle(
+                  InkWell(
+                    onTap: onLocationTap,
+                    borderRadius: BorderRadius.circular(4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 14,
                           color: AppTheme.textSecondary,
-                          fontSize: 13,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            group.venue,
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.open_in_new,
+                          size: 12,
+                          color: AppTheme.textTertiary,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacingXS),
                   // Event time and availability info

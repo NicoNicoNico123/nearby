@@ -47,6 +47,11 @@
 - Zero‑pot groups: if the creator sets join cost = 0 pts (pot = 0), there is no points penalty for users who no‑show or leave at any time; pot sharing yields 0 unless platform bonuses apply.
 - Creator-only cancellation: if only the creator remains in the group, the dining event can be cancelled and the creator’s create fee is refunded (50pts); this refund is processed outside the Group Pot would be send to platform.
 - Report (creator no-show): if ≥ 50% of confirmed attendees report within 24 hours, creator is penalized (points deduction + strike); repeated offenses can trigger suspension.
+- If the host edits either the group meal time or the venue, the host is charged the edit group fee in points. The host can edit group meal time or the venue 24 hours before of group meal time
+- After such an edit, all joined users are allowed to leave the group without any penalty, provided they make this decision more than 24 hours before the new meal start time set by the host.
+- This no-penalty leave is only available for users who leave within 24 hours after the change is made.
+- If a user stays in the group past this window, no-show penalties apply.
+- The host can only edit the meal time if the new time is more than 24 hours from the current time. Meal times cannot be changed within 24 hours of the event.
 
 #### 6.2 Free/Premium & Superlike
 - Free users:

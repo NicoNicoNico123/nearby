@@ -1,0 +1,1 @@
+Using the provided screenshot as inspiration, update the styling and design of the display, widget. Note: the start and reset button should still appear side by side inside a Row. Keep as much styling as possible in the top-level theme, declaring constants with meaningful names in a separate file, rather than hardcoding values in the widgets themselves.

@@ -162,41 +162,59 @@ class MessagingService {
 
     // Group messages - use actual groups from MockDataService
     final groups = MockDataService().getGroups();
-    for (int i = 0; i < groups.length && i < 3; i++) { // Limit to 3 group conversations
+    for (int i = 0; i < groups.length && i < 5; i++) { // Increase to 5 group conversations
       final group = groups[i];
       final groupId = group.id;
       final messages = <Message>[];
 
       messages.add(Message.system(
         id: 'msg_${groupId}_system1',
-        text: _getGroupName(groupId),
-        timestamp: DateTime.now().subtract(Duration(hours: 5 + i)),
+        text: '${group.name} - ${group.venue}',
+        timestamp: DateTime.now().subtract(Duration(hours: 8 + i * 2)),
       ));
 
       // Create messages from actual group members
-      final groupMembers = MockDataService().getUsers().take(3).toList();
+      final groupMembers = MockDataService().getUsers().take(5).toList();
+      final messageCount = _random.nextInt(4) + 3; // 3-6 messages per conversation
 
-      for (int j = 0; j < groupMembers.length; j++) {
-        final member = groupMembers[j];
+      for (int j = 0; j < messageCount; j++) {
+        final member = groupMembers[_random.nextInt(groupMembers.length)];
         if (member.id != currentUser.id) { // Don't create message from current user
           messages.add(Message.text(
             id: 'msg_${groupId}_${j + 1}',
             senderId: member.id,
             senderName: member.name,
-            text: _getGroupMessage(j),
-            timestamp: DateTime.now().subtract(Duration(hours: 4 + i - j)),
+            text: _getExpandedGroupMessage(j, group.category),
+            timestamp: DateTime.now().subtract(Duration(hours: 6 + i - j, minutes: _random.nextInt(60))),
           ));
         }
       }
 
-      // Add message from current user
-      messages.add(Message.text(
-        id: 'msg_${groupId}_current',
-        senderId: currentUser.id,
-        senderName: currentUser.name,
-        text: _getRandomMessage(isCurrentUser: true),
-        timestamp: DateTime.now().subtract(Duration(hours: 2 + i)),
-      ));
+      // Add 1-2 messages from current user
+      final currentUserMessages = _random.nextInt(2) + 1;
+      for (int k = 0; k < currentUserMessages; k++) {
+        messages.add(Message.text(
+          id: 'msg_${groupId}_current_${k}',
+          senderId: currentUser.id,
+          senderName: currentUser.name,
+          text: _getExpandedRandomMessage(isCurrentUser: true, category: group.category),
+          timestamp: DateTime.now().subtract(Duration(hours: 3 + i - k, minutes: _random.nextInt(30))),
+        ));
+      }
+
+      // Add a more recent message to keep conversation active
+      if (_random.nextBool()) {
+        final recentMember = groupMembers[_random.nextInt(groupMembers.length)];
+        if (recentMember.id != currentUser.id) {
+          messages.add(Message.text(
+            id: 'msg_${groupId}_recent',
+            senderId: recentMember.id,
+            senderName: recentMember.name,
+            text: _getExpandedGroupMessage(99, group.category),
+            timestamp: DateTime.now().subtract(Duration(minutes: _random.nextInt(120) + 10)),
+          ));
+        }
+      }
 
       _conversations[groupId] = messages;
     }
@@ -210,18 +228,91 @@ class MessagingService {
     return names[_random.nextInt(names.length)];
   }
 
-  // Get group-specific message
-  String _getGroupMessage(int index) {
-    final groupMessages = [
+  // Get expanded group-specific message
+  String _getExpandedGroupMessage(int index, String? category) {
+    final generalMessages = [
       'Hey everyone! Excited for this meetup',
       'Same here! Should we meet at the venue?',
-      'Looking forward to trying the ${MockDataService().getGroups().isNotEmpty ? MockDataService().getGroups().first.category : 'food'}',
+      'Looking forward to trying some $category food!',
+      'This is going to be amazing! 🎉',
+      'Anyone want to carpool?',
+      'First time joining this group, excited to meet everyone!',
+      'The venue looks great from the photos',
+      'Should we make reservations?',
+      'Counting down the hours!',
+      'Hope the weather is nice',
     ];
-    return groupMessages[index % groupMessages.length];
+
+    final italianMessages = [
+      'Can\'t wait for some authentic pasta! 🍝',
+      'Hope they have good tiramisu',
+      'Anyone else love garlic bread as much as I do?',
+      'Italian food is my comfort food',
+      'Might need to unbutton my pants after this 😄',
+    ];
+
+    final sushiMessages = [
+      'Sushi!!! 🍣🍣🍣',
+      'I\'m bringing my appetite',
+      'Who\'s down for some sake bombs?',
+      'Fresh fish is the best fish',
+      'Hope they have good miso soup',
+    ];
+
+    final coffeeMessages = [
+      'Coffee addicts unite! ☕',
+      'I wonder if they have oat milk',
+      'Anyone tried their cold brew?',
+      'Pastries and coffee = perfect combo',
+      'Might be over-caffeinated after this',
+    ];
+
+    final spicyMessages = [
+      'Bring on the heat! 🌶️',
+      'Hope they have water ready',
+      'I can handle anything they throw at me',
+      'Spicy food is my weakness',
+      'Anyone else bring tissues? 😂',
+    ];
+
+    List<String> categoryMessages = generalMessages;
+
+    if (category != null) {
+      switch (category.toLowerCase()) {
+        case 'italian':
+        case 'pizza':
+          categoryMessages = [...generalMessages, ...italianMessages];
+          break;
+        case 'japanese':
+        case 'sushi':
+          categoryMessages = [...generalMessages, ...sushiMessages];
+          break;
+        case 'coffee':
+          categoryMessages = [...generalMessages, ...coffeeMessages];
+          break;
+        case 'mexican':
+        case 'spicy':
+          categoryMessages = [...generalMessages, ...spicyMessages];
+          break;
+      }
+    }
+
+    if (index == 99) { // Recent message
+      final recentMessages = [
+        'Just confirmed my spot!',
+        'Running 5 minutes late, sorry!',
+        'See you all soon!',
+        'Can\'t wait! 🎊',
+        'Anyone parking at the venue?',
+      ];
+      return recentMessages[_random.nextInt(recentMessages.length)];
+    }
+
+    return categoryMessages[index % categoryMessages.length];
   }
 
-  // Get random message
-  String _getRandomMessage({bool isCurrentUser = false}) {
+  // Get expanded random message
+  String _getExpandedRandomMessage({bool isCurrentUser = false, String? category}) {
     final currentUserMessages = [
       'Sounds fun! I\'d love to join.',
       'What time are you thinking?',
@@ -229,6 +320,10 @@ class MessagingService {
       'That sounds perfect!',
       'Count me in!',
       'Looking forward to it',
+      'Should I bring anything?',
+      'Can I invite a friend?',
+      'This is exactly what I needed!',
+      'You guys are the best! 🙏',
     ];
 
     final otherUserMessages = [
@@ -238,12 +333,17 @@ class MessagingService {
       'Join our group for food adventures!',
       'Let\'s explore some new places',
       'Food lovers unite! 🍕',
+      'The food scene here is amazing',
+      'Who\'s up for trying something new?',
+      'Life is too short for bad food!',
+      'Good food, good company, good times ✨',
     ];
 
     final messages = isCurrentUser ? currentUserMessages : otherUserMessages;
     return messages[_random.nextInt(messages.length)];
   }
 
+  
   // Get current user from MockDataService
   User _getCurrentUser() {
     return MockDataService().getCurrentUser();
