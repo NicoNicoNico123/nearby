@@ -57,7 +57,7 @@ class GroupCard extends StatelessWidget {
             // Image section with overlay tags
             Container(
               width: double.infinity,
-              height: 355, // Reduced to fix overflow
+              height: 280, // Further reduced to fix overflow
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 color: AppTheme.surfaceColor,
@@ -161,7 +161,115 @@ class GroupCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppTheme.spacingSM),
+                  const SizedBox(height: 8),
+                  // Pot and cost info
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.spacingXS),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.monetization_on,
+                              size: 14,
+                              color: AppTheme.primaryColor,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${group.groupPot} pts',
+                              style: const TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.trending_up,
+                              size: 14,
+                              color: Colors.orange,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${group.joinCost} pts',
+                              style: const TextStyle(
+                                color: Colors.orange,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spacingXS),
+                  // Location info
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        group.venue,
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppTheme.spacingXS),
+                  // Event time and availability info
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formatEventTime(group.mealTime),
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: group.availableSpots > 0
+                            ? Colors.green.withValues(alpha: 0.2)
+                            : Colors.red.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${group.availableSpots} left',
+                          style: TextStyle(
+                            color: group.availableSpots > 0
+                              ? Colors.green
+                              : Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   // Action buttons
                   Row(
                     children: [
@@ -172,7 +280,7 @@ class GroupCard extends StatelessWidget {
                             backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
                             foregroundColor: AppTheme.primaryColor,
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(999),
                             ),
@@ -188,7 +296,7 @@ class GroupCard extends StatelessWidget {
                             backgroundColor: const Color(0xFF4AC7F0).withValues(alpha: 0.2),
                             foregroundColor: const Color(0xFF4AC7F0),
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(999),
                             ),
@@ -252,7 +360,7 @@ class GroupCard extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: AppTheme.spacingSM),
+        const SizedBox(height: 8),
         // Text content
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXS),
@@ -281,5 +389,52 @@ class GroupCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  // Format event date and time
+  String _formatEventTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final eventDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    final difference = eventDate.difference(today);
+
+    if (difference.inDays == 0) {
+      // Today - show time
+      return 'Today ${_formatTime(dateTime)}';
+    } else if (difference.inDays == 1) {
+      // Tomorrow
+      return 'Tomorrow ${_formatTime(dateTime)}';
+    } else if (difference.inDays > 1 && difference.inDays <= 7) {
+      // This week
+      return '${_getWeekday(dateTime.weekday)} ${_formatTime(dateTime)}';
+    } else {
+      // Future date
+      return '${_formatDate(dateTime)} ${_formatTime(dateTime)}';
+    }
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour;
+    final minute = dateTime.minute;
+
+    if (hour == 0) {
+      return '12:${minute.toString().padLeft(2, '0')} AM';
+    } else if (hour < 12) {
+      return '$hour:${minute.toString().padLeft(2, '0')} AM';
+    } else if (hour == 12) {
+      return '12:${minute.toString().padLeft(2, '0')} PM';
+    } else {
+      return '${hour - 12}:${minute.toString().padLeft(2, '0')} PM';
+    }
+  }
+
+  String _formatDate(DateTime dateTime) {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+  }
+
+  String _getWeekday(int weekday) {
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return weekdays[weekday - 1];
   }
 }
