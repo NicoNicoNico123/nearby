@@ -11,6 +11,15 @@ class User {
   final DateTime? lastSeen;
   final List<String> intents; // dining, romantic, networking, etc.
 
+  // New optional fields for profile enhancement
+  final String? work; // Work/occupation
+  final String? education; // Education background
+  final String? drinkingHabits; // Drinking habits preferences
+  final String? mealInterest; // Meal interest preferences
+  final String? starSign; // Star sign/zodiac
+  final List<String> languages; // Languages spoken (required field)
+  final String gender; // Gender field with iconic options
+
   const User({
     required this.id,
     required this.name,
@@ -23,6 +32,14 @@ class User {
     this.distance,
     this.lastSeen,
     this.intents = const [],
+    // New optional fields
+    this.work,
+    this.education,
+    this.drinkingHabits,
+    this.mealInterest,
+    this.starSign,
+    this.languages = const [],
+    this.gender = 'Prefer not to say',
   });
 
   User copyWith({
@@ -37,6 +54,14 @@ class User {
     double? distance,
     DateTime? lastSeen,
     List<String>? intents,
+    // New optional fields
+    String? work,
+    String? education,
+    String? drinkingHabits,
+    String? mealInterest,
+    String? starSign,
+    List<String>? languages,
+    String? gender,
   }) {
     return User(
       id: id ?? this.id,
@@ -50,6 +75,14 @@ class User {
       distance: distance ?? this.distance,
       lastSeen: lastSeen ?? this.lastSeen,
       intents: intents ?? this.intents,
+      // New optional fields
+      work: work ?? this.work,
+      education: education ?? this.education,
+      drinkingHabits: drinkingHabits ?? this.drinkingHabits,
+      mealInterest: mealInterest ?? this.mealInterest,
+      starSign: starSign ?? this.starSign,
+      languages: languages ?? this.languages,
+      gender: gender ?? this.gender,
     );
   }
 
@@ -66,6 +99,14 @@ class User {
       'distance': distance,
       'lastSeen': lastSeen?.toIso8601String(),
       'intents': intents,
+      // New optional fields
+      'work': work,
+      'education': education,
+      'drinkingHabits': drinkingHabits,
+      'mealInterest': mealInterest,
+      'starSign': starSign,
+      'languages': languages,
+      'gender': gender,
     };
   }
 
@@ -90,6 +131,17 @@ class User {
           ?.map((e) => e as String)
           .toList() ??
           [],
+      // New optional fields
+      work: json['work'] as String?,
+      education: json['education'] as String?,
+      drinkingHabits: json['drinkingHabits'] as String?,
+      mealInterest: json['mealInterest'] as String?,
+      starSign: json['starSign'] as String?,
+      languages: (json['languages'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+          [],
+      gender: json['gender'] as String? ?? 'Prefer not to say',
     );
   }
 

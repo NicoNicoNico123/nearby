@@ -85,71 +85,133 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
   }
 
-  // Header matching HTML reference
+  // Enhanced Header with visual consistency
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMD),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: AppTheme.borderColor,
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
         children: [
-          // Logo placeholder
+          // Logo placeholder with enhanced styling
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
               color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
             ),
             child: const Icon(
-              Icons.diversity_3,
+              Icons.explore,
               color: AppTheme.primaryColor,
               size: 24,
             ),
           ),
-          // Title
+          // Title with enhanced styling
           Expanded(
             child: Center(
               child: Text(
                 'DISCOVER',
                 style: const TextStyle(
                   color: AppTheme.textPrimary,
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: -0.3,
+                  letterSpacing: -0.5,
                 ),
               ),
             ),
           ),
-          // Spacer for balance
-          const SizedBox(width: 40),
+          // Action button placeholder
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.borderColor,
+                width: 1,
+              ),
+            ),
+            child: InkWell(
+              onTap: _showFilterOptions,
+              borderRadius: BorderRadius.circular(12),
+              child: const Icon(
+                Icons.tune,
+                color: AppTheme.textSecondary,
+                size: 20,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // "Recommended for you" section with horizontal scroll
+  // Enhanced "Recommended for you" section
   Widget _buildRecommendedSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
+        Container(
           padding: const EdgeInsets.fromLTRB(
             AppTheme.spacingMD,
             AppTheme.spacingLG,
             AppTheme.spacingMD,
             AppTheme.spacingMD,
           ),
-          child: const Text(
-            'Recommended for you',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.3,
-            ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.recommend,
+                color: AppTheme.primaryColor,
+                size: 24,
+              ),
+              const SizedBox(width: AppTheme.spacingSM),
+              const Text(
+                'Recommended for you',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: _refreshRecommendations,
+                child: const Text(
+                  'See All',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         Container(
-          height: 540, // Adjusted height for proper card display
+          height: 540,
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: AppTheme.borderColor,
+                width: 1,
+              ),
+            ),
+          ),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMD),
@@ -173,30 +235,71 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
   }
 
-  // "Groups for you" section with 2-column grid
+  // Enhanced "Groups for you" section
   Widget _buildGroupsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
+        Container(
           padding: const EdgeInsets.fromLTRB(
             AppTheme.spacingMD,
             AppTheme.spacingLG,
             AppTheme.spacingMD,
             AppTheme.spacingMD,
           ),
-          child: const Text(
-            'Groups for you',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.3,
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: AppTheme.borderColor,
+                width: 1,
+              ),
             ),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.groups,
+                color: AppTheme.primaryColor,
+                size: 24,
+              ),
+              const SizedBox(width: AppTheme.spacingSM),
+              const Text(
+                'Groups for you',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingSM,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  '${_allGroups.length} groups',
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMD),
+          padding: const EdgeInsets.all(AppTheme.spacingMD),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -204,14 +307,14 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               crossAxisCount: 2,
               crossAxisSpacing: AppTheme.spacingMD,
               mainAxisSpacing: AppTheme.spacingMD,
-              childAspectRatio: 0.65, // Adjusted for better card fit
+              childAspectRatio: 0.65,
             ),
             itemCount: _allGroups.length,
             itemBuilder: (context, index) {
               final group = _allGroups[index];
               return InkWell(
                 onTap: () => _showGroupDetails(group),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 child: GroupCard(
                   group: group,
                   isHorizontal: false,
@@ -221,7 +324,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             },
           ),
         ),
-        const SizedBox(height: 80), // Bottom padding for navigation
+        const SizedBox(height: 100), // Enhanced bottom padding for navigation
       ],
     );
   }
@@ -254,6 +357,30 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         content: Text('Superliked ${group.name}! ⭐'),
         backgroundColor: const Color(0xFF4AC7F0),
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _refreshRecommendations() {
+    Logger.info('Refreshing recommendations');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Refreshing recommendations...'),
+        backgroundColor: AppTheme.primaryColor,
+        duration: Duration(seconds: 1),
+      ),
+    );
+    // Reload groups with animation
+    _loadGroups();
+  }
+
+  void _showFilterOptions() {
+    Logger.info('Opening filter options');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Filter options coming soon!'),
+        backgroundColor: AppTheme.textSecondary,
+        duration: Duration(seconds: 2),
       ),
     );
   }
