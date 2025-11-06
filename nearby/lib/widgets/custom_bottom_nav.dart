@@ -43,6 +43,8 @@ class CustomBottomNavigation extends StatelessWidget {
                   index: 1,
                 ),
               ),
+              // Spacer for FAB
+              const SizedBox(width: 65), // Width of FAB
               Expanded(
                 child: _buildNavItem(
                   context,

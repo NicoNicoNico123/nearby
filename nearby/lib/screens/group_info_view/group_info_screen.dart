@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 import '../../theme/app_theme.dart';
 import '../../models/group_model.dart';
+import '../../models/user_model.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/member_profile_popup.dart';
 import '../../services/mock_data_service.dart';
+import '../../services/map_service.dart';
 import '../../utils/logger.dart';
 
 class GroupInfoScreen extends StatefulWidget {
@@ -18,6 +23,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   final MockDataService _dataService = MockDataService();
   late Group _group;
   bool _isCreatingNew = false;
+  bool _isEditMode = false;
   bool _isLoading = false;
 
   // Form controllers for creating/editing
@@ -81,7 +87,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         backgroundColor: AppTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          _isCreatingNew ? 'Create Group' : 'Group Details',
+          _isCreatingNew ? 'Create Group' : _isEditMode ? 'Edit Group' : 'Group Details',
           style: const TextStyle(
             color: AppTheme.textPrimary,
             fontWeight: FontWeight.bold,
@@ -111,11 +117,21 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   if (_isCreatingNew) ...[
                     _buildCreateGroupForm(),
                     const SizedBox(height: AppTheme.spacingXL),
+                  ] else if (_isEditMode) ...[
+                    _buildEditGroupForm(),
+                    const SizedBox(height: AppTheme.spacingXL),
+                    _buildMembershipStatus(),
+                    const SizedBox(height: AppTheme.spacingLG),
+                    _buildMembersSection(),
+                    const SizedBox(height: AppTheme.spacingXL),
+                    _buildEditActions(),
                   ] else ...[
                     _buildGroupHeader(),
                     const SizedBox(height: AppTheme.spacingXL),
                     _buildGroupInfo(),
                     const SizedBox(height: AppTheme.spacingXL),
+                    _buildMembershipStatus(),
+                    const SizedBox(height: AppTheme.spacingLG),
                     _buildMembersSection(),
                     const SizedBox(height: AppTheme.spacingXL),
                     _buildGroupActions(),
@@ -165,6 +181,85 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
             ),
             child: const Text('Create Group'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditGroupForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Edit Group',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppTheme.spacingMD),
+        _buildFormField('Group Name', _nameController, 'Enter group name'),
+        const SizedBox(height: AppTheme.spacingMD),
+        _buildFormField(
+          'Description',
+          _descriptionController,
+          'Describe your group',
+          maxLines: 3,
+        ),
+        const SizedBox(height: AppTheme.spacingMD),
+        _buildFormField('Venue', _venueController, 'Restaurant or location (50 pts)'),
+        const SizedBox(height: AppTheme.spacingMD),
+        _buildFormField('Location', _locationController, 'Address or area'),
+        const SizedBox(height: AppTheme.spacingMD),
+        _buildDateTimePicker(),
+        const SizedBox(height: AppTheme.spacingMD),
+        _buildMaxMembersSelector(),
+        const SizedBox(height: AppTheme.spacingMD),
+        _buildInterestsSelector(),
+        const SizedBox(height: AppTheme.spacingXL),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _cancelEdit,
+                child: const Text('Cancel'),
+              ),
+            ),
+            const SizedBox(width: AppTheme.spacingMD),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _saveEdit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                ),
+                child: const Text('Save Changes'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _cancelEdit,
+            child: const Text('Cancel Edit'),
+          ),
+        ),
+        const SizedBox(width: AppTheme.spacingMD),
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _cancelGroup,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.errorColor,
+              side: const BorderSide(color: AppTheme.errorColor),
+            ),
+            child: const Text('Cancel Group'),
           ),
         ),
       ],
@@ -464,7 +559,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               'Meal Time',
               _formatDateTime(_group.mealTime),
             ),
-            _buildInfoRow(Icons.location_on, 'Venue', _group.venue),
+            _buildVenueInfoRow(),
             _buildInfoRow(Icons.person, 'Created by', _group.creatorName),
             _buildInfoRow(
               Icons.people,
@@ -512,6 +607,197 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     );
   }
 
+  Widget _buildMembershipStatus() {
+    if (_group.isCreator(_currentUserId)) {
+      return Card(
+        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingMD),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.admin_panel_settings,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spacingMD),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'You are the Host',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'You can edit this group and manage members',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_group.isMember(_currentUserId)) {
+      return Card(
+        color: Colors.green.withValues(alpha: 0.1),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingMD),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spacingMD),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'You are a Member',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'You can participate in group chat and activities',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_group.isInWaitingList(_currentUserId)) {
+      return Card(
+        color: Colors.orange.withValues(alpha: 0.1),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingMD),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.access_time,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spacingMD),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'You are on the Waiting List',
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Position ${_group.waitingList.indexOf(_currentUserId) + 1} of ${_group.waitingList.length}',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Not a member - show join prompt
+    return Card(
+      color: Colors.grey.withValues(alpha: 0.1),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingMD),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person_add,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: AppTheme.spacingMD),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Not a Member Yet',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    _group.availableSpots > 0
+                        ? '${_group.availableSpots} spots available'
+                        : 'Group is full - join waiting list',
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMD),
@@ -545,6 +831,55 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     );
   }
 
+  Widget _buildVenueInfoRow() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spacingMD),
+      child: InkWell(
+        onTap: _showVenueLocationMap,
+        borderRadius: BorderRadius.circular(8),
+        child: Row(
+          children: [
+            Icon(Icons.location_on, color: AppTheme.primaryColor, size: 20),
+            const SizedBox(width: AppTheme.spacingMD),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Venue',
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _group.venue,
+                          style: const TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppTheme.spacingSM),
+                      Icon(
+                        Icons.open_in_new,
+                        size: 16,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMembersSection() {
     final currentUser = _dataService.getCurrentUser();
 
@@ -572,10 +907,28 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             // Show creator first
             Row(
               children: [
-                UserAvatar(
-                  name: _group.creatorName,
-                  imageUrl: 'https://picsum.photos/100/100?random=creator',
-                  size: 40,
+                GestureDetector(
+                  onTap: () {
+                    final creatorUser = User(
+                      id: _group.creatorId,
+                      name: _group.creatorName,
+                      username: _group.creatorName.toLowerCase().replaceAll(' ', '_'),
+                      age: 25 + (_group.creatorId.hashCode % 20), // Mock age
+                      bio: 'Group creator who loves organizing dining experiences and meeting new people.',
+                      imageUrl: 'https://picsum.photos/100/100?random=creator',
+                      interests: ['Dining', 'Social', 'Food'],
+                      isAvailable: true,
+                      distance: 5.0,
+                      lastSeen: DateTime.now().subtract(const Duration(hours: 2)),
+                      intents: ['dining', 'friendship'],
+                    );
+                    _showMemberProfile(creatorUser);
+                  },
+                  child: UserAvatar(
+                    name: _group.creatorName,
+                    imageUrl: 'https://picsum.photos/100/100?random=creator',
+                    size: 40,
+                  ),
                 ),
                 const SizedBox(width: AppTheme.spacingMD),
                 Expanded(
@@ -627,10 +980,15 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               const SizedBox(height: AppTheme.spacingMD),
               Row(
                 children: [
-                  UserAvatar(
-                    name: currentUser.name,
-                    imageUrl: currentUser.imageUrl,
-                    size: 40,
+                  GestureDetector(
+                    onTap: () {
+                      _showMemberProfile(currentUser);
+                    },
+                    child: UserAvatar(
+                      name: currentUser.name,
+                      imageUrl: currentUser.imageUrl,
+                      size: 40,
+                    ),
                   ),
                   const SizedBox(width: AppTheme.spacingMD),
                   Expanded(
@@ -727,16 +1085,30 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     return Column(
       children: [
         if (_group.isMember(_currentUserId)) ...[
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: _leaveGroup,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.errorColor,
-                side: const BorderSide(color: AppTheme.errorColor),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _leaveGroup,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.errorColor,
+                    side: const BorderSide(color: AppTheme.errorColor),
+                  ),
+                  child: const Text('Leave Group'),
+                ),
               ),
-              child: const Text('Leave Group'),
-            ),
+              const SizedBox(width: AppTheme.spacingMD),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _viewChat,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('View Chat'),
+                ),
+              ),
+            ],
           ),
         ] else if (_group.isInWaitingList(_currentUserId)) ...[
           SizedBox(
@@ -943,7 +1315,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   void _editGroup() {
     setState(() {
-      _isCreatingNew = true;
+      _isEditMode = true;
       _nameController.text = _group.name;
       _descriptionController.text = _group.description;
       _venueController.text = _group.venue;
@@ -952,6 +1324,339 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       _selectedInterests.clear();
       _selectedInterests.addAll(_group.interests);
     });
+  }
+
+  void _saveEdit() {
+    // Check what fields have changed and calculate costs
+    final changedFields = <String, String>{};
+    int totalCost = 0;
+
+    // Check free fields (no cost)
+    if (_nameController.text.trim() != _group.name) {
+      changedFields['name'] = _nameController.text.trim();
+    }
+    if (_descriptionController.text.trim() != _group.description) {
+      changedFields['description'] = _descriptionController.text.trim();
+    }
+    if (!const ListEquality().equals(_selectedInterests, _group.interests)) {
+      changedFields['interests'] = _selectedInterests.join(', ');
+    }
+
+    // Check paid fields (50 points each)
+    if (_venueController.text.trim() != _group.venue) {
+      changedFields['venue'] = _venueController.text.trim();
+      totalCost += 50;
+    }
+    // Note: In a real app, we'd compare DateTime objects for meal time
+    // For now, we'll handle meal time changes in the cost popup
+
+    if (totalCost > 0) {
+      // Show cost confirmation popup
+      _showEditCostPopup(changedFields, totalCost);
+    } else if (changedFields.isNotEmpty) {
+      // Free changes only, save directly
+      _applyFreeEdits(changedFields);
+    } else {
+      // No changes made
+      _cancelEdit();
+    }
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _isEditMode = false;
+      // Clear controllers
+      _nameController.clear();
+      _descriptionController.clear();
+      _venueController.clear();
+      _locationController.clear();
+      _selectedInterests.clear();
+    });
+  }
+
+  void _applyFreeEdits(Map<String, String> changedFields) {
+    setState(() {
+      // Apply free changes
+      if (changedFields.containsKey('name')) {
+        _group = _group.copyWith(name: changedFields['name']!);
+      }
+      if (changedFields.containsKey('description')) {
+        _group = _group.copyWith(description: changedFields['description']!);
+      }
+      if (changedFields.containsKey('interests')) {
+        _group = _group.copyWith(interests: _selectedInterests);
+      }
+
+      _isEditMode = false;
+    });
+
+    Logger.info('Applied free edits to group: ${_group.name}');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Group updated successfully!'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+    }
+  }
+
+  void _showEditCostPopup(Map<String, String> changedFields, int totalCost) async {
+    // Mock user points balance (in real app, this would come from user service)
+    const int userPointsBalance = 250;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.monetization_on,
+                color: Colors.orange,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Confirm Edit Costs',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Making these changes will cost:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.attach_money,
+                    color: AppTheme.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '$totalCost points',
+                    style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Your balance: $userPointsBalance points',
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (changedFields.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Changes:',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              ...changedFields.entries.map((entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Text(
+                      '${entry.key}:',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        entry.value,
+                        style: const TextStyle(color: AppTheme.primaryColor),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+            ],
+            const SizedBox(height: 16),
+            const Text(
+              '⚠️ This cost is charged because changing the venue or meal time affects all members.',
+              style: TextStyle(
+                color: Colors.orange,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          if (userPointsBalance >= totalCost)
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+              ),
+              child: const Text('Confirm Edit'),
+            )
+          else
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+                _showInsufficientPointsDialog();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+              ),
+              child: const Text('Insufficient Points'),
+            ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      _applyPaidEdits(changedFields, totalCost);
+    }
+  }
+
+  void _showInsufficientPointsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Insufficient Points'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You don\'t have enough points to make these changes.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Get more points by:\n• Creating new groups\n• Joining groups regularly\n• Upgrading to Premium',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // In a real app, navigate to upgrade or points purchase screen
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Upgrade feature coming soon!'),
+                  backgroundColor: AppTheme.primaryColor,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            child: const Text('Get Points'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _applyPaidEdits(Map<String, String> changedFields, int cost) {
+    setState(() {
+      // Apply all changes including paid ones
+      if (changedFields.containsKey('name')) {
+        _group = _group.copyWith(name: changedFields['name']!);
+      }
+      if (changedFields.containsKey('description')) {
+        _group = _group.copyWith(description: changedFields['description']!);
+      }
+      if (changedFields.containsKey('interests')) {
+        _group = _group.copyWith(interests: _selectedInterests);
+      }
+      if (changedFields.containsKey('venue')) {
+        _group = _group.copyWith(venue: changedFields['venue']!);
+      }
+
+      _isEditMode = false;
+    });
+
+    Logger.info('Applied paid edits to group: ${_group.name} (cost: $cost points)');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Group updated successfully! ($cost points deducted)'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+    }
+  }
+
+  void _viewChat() {
+    // Navigate to chat screen for this group
+    Navigator.pushNamed(
+      context,
+      '/chat',
+      arguments: {
+        'groupId': _group.id,
+        'groupName': _group.name,
+      },
+    );
   }
 
   void _joinGroup() async {
@@ -1208,6 +1913,163 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             backgroundColor: AppTheme.errorColor,
           ),
         );
+      }
+    }
+  }
+
+  void _showMemberProfile(User user) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => MemberProfilePopup(
+        user: user,
+        onClose: () {
+          Logger.info('Member profile popup closed for: ${user.name}');
+        },
+      ),
+    );
+  }
+
+  void _showVenueLocationMap() async {
+    // Use mock coordinates for demo if not available
+    final lat = _group.latitude ?? 40.7128; // Default to NYC
+    final lng = _group.longitude ?? -74.0060; // Default to NYC
+
+    Logger.info('Opening map for venue: ${_group.venue} at ($lat, $lng)');
+
+    // Show simple confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.location_on,
+                  color: AppTheme.primaryColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Open Venue Location',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Open ${_group.venue} in your map application?',
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: AppTheme.primaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          kIsWeb ? 'Will open in your web browser' : 'Will open in your default map app',
+                          style: const TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.gps_fixed,
+                          size: 16,
+                          color: AppTheme.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Location: ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Open'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await MapService.launchMap(
+          latitude: lat,
+          longitude: lng,
+          venueName: _group.venue,
+        );
+      } catch (e) {
+        Logger.error('Failed to launch map', error: e);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open map application'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

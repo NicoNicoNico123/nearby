@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/message_model.dart';
+import '../../models/user_model.dart';
 import '../../services/messaging_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/member_profile_popup.dart';
 import '../../utils/logger.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -163,10 +165,15 @@ class _ChatScreenState extends State<ChatScreen> {
       // For direct messages (though we don't have them anymore, keeping for completeness)
       return Row(
         children: [
-          UserAvatar(
-            size: 36,
-            imageUrl: '', // In real app, would have user image
-            name: widget.conversationName,
+          GestureDetector(
+            onTap: () {
+              _showMemberProfile(widget.conversationName);
+            },
+            child: UserAvatar(
+              size: 36,
+              imageUrl: '', // In real app, would have user image
+              name: widget.conversationName,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -257,10 +264,15 @@ class _ChatScreenState extends State<ChatScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isCurrentUser && widget.isGroup) ...[
-            UserAvatar(
-              size: 32,
-              imageUrl: '', // In real app, would have sender image
-              name: message.senderName,
+            GestureDetector(
+              onTap: () {
+                _showMemberProfile(message.senderName);
+              },
+              child: UserAvatar(
+                size: 32,
+                imageUrl: '', // In real app, would have sender image
+                name: message.senderName,
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -624,10 +636,37 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } else {
       // For direct messages (not used anymore, but keeping for completeness)
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User profile coming soon')),
-      );
+      _showMemberProfile(widget.conversationName);
     }
+  }
+
+  void _showMemberProfile(String userName) {
+    // Create a mock user for demo purposes
+    // In a real app, you would fetch the actual user data from your service
+    final mockUser = User(
+      id: 'user_${userName.hashCode.abs()}',
+      name: userName,
+      username: userName.toLowerCase().replaceAll(' ', '_'),
+      age: 22 + (userName.hashCode % 25), // Mock age between 22-47
+      bio: 'Active participant in the ${widget.conversationName} conversation. Loves meeting new people and sharing dining experiences.',
+      imageUrl: 'https://picsum.photos/400/600?random=${userName.hashCode}',
+      interests: ['Dining', 'Social', 'Food', 'Conversation'],
+      isAvailable: true,
+      distance: 2.0 + (userName.hashCode % 8).toDouble(), // Mock distance 2-10 miles
+      lastSeen: DateTime.now().subtract(Duration(minutes: userName.hashCode % 120)),
+      intents: ['dining', 'friendship', 'networking'],
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => MemberProfilePopup(
+        user: mockUser,
+        onClose: () {
+          Logger.info('Member profile popup closed for: $userName');
+        },
+      ),
+    );
   }
 
   @override
