@@ -3,6 +3,7 @@ import 'theme/app_theme.dart';
 import 'main_navigation.dart';
 import 'screens/messaging/chat_screen.dart';
 import 'screens/group_info_view/group_info_screen.dart';
+import 'screens/create_group/create_group_screen.dart';
 import 'screens/feed/filter_screen.dart';
 import 'screens/feed/interest_search_screen.dart';
 import 'screens/feed/language_search_screen.dart';
@@ -86,6 +87,11 @@ class NearbyApp extends StatelessWidget {
           builder: (context) => LanguageSearchScreen(
             initiallySelectedLanguages: initiallySelected,
           ),
+        );
+
+      case '/create_group':
+        return MaterialPageRoute(
+          builder: (context) => const CreateGroupScreen(),
         );
 
       default:
