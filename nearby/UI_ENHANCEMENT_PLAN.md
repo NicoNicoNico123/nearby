@@ -332,7 +332,7 @@ This plan outlines the UI enhancements needed across multiple screens to improve
 - [x] Position floating action button appropriately (bottom-center, docked)
 - [x] Add navigation to create group screen (`/create_group`)
 - [x] Implement proper animations and shadows (dual shadow effect)
-- [x] Handle button visibility on different screens (hidden on Discover screen)
+- [x] Handle button visibility on different screens (visible on all screens for consistent UX)
 - [x] Add ripple effect and touch feedback
 - [ ] ~~Create long-press menu with quick options (Quick Create, Templates)~~
 - [ ] ~~Add badge notifications for group creation invites~~

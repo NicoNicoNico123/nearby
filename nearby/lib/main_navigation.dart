@@ -102,7 +102,7 @@ class _MainNavigationState extends State<MainNavigation> {
         children: _screens,
       ),
       backgroundColor: AppTheme.backgroundColor, // Dark background
-      floatingActionButton: _currentIndex != 1 ? _buildCreateGroupFAB() : null,
+      floatingActionButton: _buildCreateGroupFAB(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: CustomBottomNavigation(
         currentIndex: _currentIndex,
