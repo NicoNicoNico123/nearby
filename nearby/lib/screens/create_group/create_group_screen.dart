@@ -12,20 +12,24 @@ class CreateGroupScreen extends StatefulWidget {
 
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
   // Form controllers
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  final TextEditingController _detailsController = TextEditingController();
+  final TextEditingController _joinCostController = TextEditingController();
+  final TextEditingController _hostAdditionalPointsController = TextEditingController();
 
   // Form state
   int _peopleLimit = 4;
   bool _approvedByCreator = false;
   bool _allowWaitingList = true;
-  String _genderSetting = 'Any';
+  Set<String> _selectedGenders = {'Male', 'Female', 'LGBTQ+'}; // Multi-select genders
+  Map<String, int> _genderLimits = {}; // Gender-based seat limits
+  List<String> _selectedLanguages = []; // Language requirements
   int _ageRangeMin = 18;
   int _ageRangeMax = 35;
-  List<String> _interests = ['Travel', 'Movie', 'Food'];
+  List<String> _interests = ['Travel', 'Movie', 'Food']; // Will be validated to 3-8
   String? _uploadedImagePath;
 
   // UI state
@@ -33,11 +37,13 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   @override
   void dispose() {
+    _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
     _dateController.dispose();
     _timeController.dispose();
-    _detailsController.dispose();
+    _joinCostController.dispose();
+    _hostAdditionalPointsController.dispose();
     super.dispose();
   }
 
@@ -46,11 +52,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   }
 
   bool _isFormValid() {
-    return _descriptionController.text.trim().isNotEmpty &&
+    return _titleController.text.trim().isNotEmpty &&
+           _descriptionController.text.trim().isNotEmpty &&
            _locationController.text.trim().isNotEmpty &&
            _dateController.text.trim().isNotEmpty &&
            _timeController.text.trim().isNotEmpty &&
-           _peopleLimit >= 2;
+           _peopleLimit >= 2 &&
+           _interests.length >= 3 && // Minimum 3 interests
+           _interests.length <= 8; // Maximum 8 interests
   }
 
   void _showPostConfirmation() {
@@ -152,8 +161,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
     try {
       // Create new group with form data
+      final titleText = _titleController.text.trim();
       final descriptionText = _descriptionController.text.trim();
-      final titleText = descriptionText.split('\n')[0];
 
       // Parse date and time
       final dateParts = _dateController.text.trim().split('/');
@@ -188,13 +197,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         mealTime = DateTime.now().add(const Duration(days: 1));
       }
 
+      // Parse numeric values
+      final joinCostFees = int.tryParse(_joinCostController.text.trim()) ?? 0;
+      final hostAdditionalPoints = int.tryParse(_hostAdditionalPointsController.text.trim()) ?? 0;
+
       final newGroup = Group(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: titleText,
         description: descriptionText,
-        subtitle: _detailsController.text.trim().isNotEmpty
-            ? _detailsController.text.trim()
-            : 'Join us for a great dining experience!',
+        subtitle: 'Join us for a great dining experience!',
         imageUrl: _uploadedImagePath ?? 'https://picsum.photos/400/300?random=${DateTime.now().millisecondsSinceEpoch}',
         interests: List.from(_interests),
         memberCount: 1, // Creator counts as first member
@@ -211,6 +222,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         longitude: -122.4194,
         groupPot: 0,
         joinCost: 0, // Mock groups are free
+        // New enhanced fields
+        title: titleText,
+        allowedGenders: _selectedGenders.toList(),
+        genderLimits: _genderLimits,
+        allowedLanguages: _selectedLanguages,
+        ageRangeMin: _ageRangeMin,
+        ageRangeMax: _ageRangeMax,
+        joinCostFees: joinCostFees,
+        hostAdditionalPoints: hostAdditionalPoints,
       );
 
       // Simulate API call delay
@@ -279,24 +299,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             const SizedBox(width: 48), // Balance the close button
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: TextButton(
-              onPressed: _isSubmitting ? null : _showPostConfirmation,
-              child: Text(
-                'Post',
-                style: TextStyle(
-                  color: _isFormValid() && !_isSubmitting
-                      ? AppTheme.primaryColor
-                      : AppTheme.textSecondary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
+        actions: const [],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -311,10 +314,34 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             // Optional Settings Section
             _buildSectionTitle('Optional Settings'),
             _buildOptionalSettingsSection(),
-            const SizedBox(height: 100), // Extra padding at bottom
+            const SizedBox(height: 120), // Extra padding for FAB
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _isSubmitting ? null : _showPostConfirmation,
+        backgroundColor: _isFormValid() && !_isSubmitting
+            ? AppTheme.primaryColor
+            : AppTheme.textSecondary,
+        icon: _isSubmitting
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.launch),
+        label: Text(
+          _isSubmitting ? 'Creating...' : 'Create Group',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -341,6 +368,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // Title
+          _buildTitleField(),
+          _buildDivider(),
           // Description
           _buildDescriptionField(),
           _buildDivider(),
@@ -372,6 +402,40 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           _buildPeopleLimitField(),
         ],
       ),
+    );
+  }
+
+  Widget _buildTitleField() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.title,
+          color: AppTheme.textSecondary,
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: TextField(
+            controller: _titleController,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            decoration: const InputDecoration(
+              hintText: 'Group Title',
+              hintStyle: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 16,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            onChanged: (value) => setState(() {}),
+          ),
+        ),
+      ],
     );
   }
 
@@ -543,50 +607,333 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Widget _buildOptionalSettingsSection() {
     return Column(
       children: [
-        // Additional Details
-        _buildAdditionalDetailsField(),
-        const SizedBox(height: 16),
         // Image Upload
         _buildImageUploadField(),
         const SizedBox(height: 16),
         // Toggle Settings
         _buildToggleSettings(),
         const SizedBox(height: 16),
-        // Gender Setting
-        _buildGenderSetting(),
+        // Gender Selection with Limits
+        _buildGenderLimitSelection(),
+        const SizedBox(height: 16),
+        // Language Selection
+        _buildLanguageSelectionField(),
         const SizedBox(height: 16),
         // Age Range
         _buildAgeRangeField(),
         const SizedBox(height: 16),
         // Interests
         _buildInterestsField(),
+        const SizedBox(height: 16),
+        // Join Cost Fees
+        _buildJoinCostField(),
+        const SizedBox(height: 16),
+        // Host Additional Points
+        _buildHostAdditionalPointsField(),
       ],
     );
   }
 
-  Widget _buildAdditionalDetailsField() {
+  Widget _buildGenderLimitSelection() {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),
-      child: TextField(
-        controller: _detailsController,
-        maxLines: 3,
-        style: const TextStyle(
-          color: AppTheme.textPrimary,
-          fontSize: 16,
-        ),
-        decoration: const InputDecoration(
-          hintText: 'Add further details about the group (optional)...',
-          hintStyle: TextStyle(
-            color: AppTheme.textSecondary,
-            fontSize: 16,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Allowed Genders',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() {
+                  _selectedGenders.contains('Male') &&
+                  _selectedGenders.contains('Female') &&
+                  _selectedGenders.contains('LGBTQ+')
+                      ? _selectedGenders.clear()
+                      : _selectedGenders = {'Male', 'Female', 'LGBTQ+'};
+                }),
+                child: Text(
+                  _selectedGenders.length == 3 ? 'Clear All' : 'Select All',
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-        ),
+          const SizedBox(height: 12),
+          // Gender selection checkboxes
+          ...['Male', 'Female', 'LGBTQ+'].map((gender) {
+            final isSelected = _selectedGenders.contains(gender);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: InkWell(
+                onTap: () => setState(() {
+                  isSelected
+                      ? _selectedGenders.remove(gender)
+                      : _selectedGenders.add(gender);
+                }),
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Icon(
+                      isSelected ? Icons.check_circle : Icons.circle_outlined,
+                      color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      gender,
+                      style: TextStyle(
+                        color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+
+          // Gender limits section
+          if (_selectedGenders.length < 3 && _selectedGenders.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Gender-based Seat Limits',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._selectedGenders.map((gender) {
+              final currentLimit = _genderLimits[gender] ?? 0;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '$gender seats',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: currentLimit > 0 ? () => setState(() {
+                            final newLimits = Map<String, int>.from(_genderLimits);
+                            newLimits[gender] = (newLimits[gender] ?? 0) - 1;
+                            _genderLimits = newLimits;
+                          }) : null,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: currentLimit > 0
+                                  ? AppTheme.backgroundColor
+                                  : AppTheme.backgroundColor.withValues(alpha: 0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.remove,
+                              color: currentLimit > 0
+                                  ? AppTheme.textSecondary
+                                  : AppTheme.textTertiary,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        SizedBox(
+                          width: 24,
+                          child: Text(
+                            '$currentLimit',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        InkWell(
+                          onTap: () => setState(() {
+                            final newLimits = Map<String, int>.from(_genderLimits);
+                            newLimits[gender] = (newLimits[gender] ?? 0) + 1;
+                            _genderLimits = newLimits;
+                          }),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: const BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 8),
+            Text(
+              'Total gender limits: ${_genderLimits.values.fold(0, (sum, count) => sum + count)} / $_peopleLimit',
+              style: TextStyle(
+                color: _genderLimits.values.fold(0, (sum, count) => sum + count) <= _peopleLimit
+                    ? AppTheme.textSecondary
+                    : AppTheme.errorColor,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelectionField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Language Requirements',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                '${_selectedLanguages.length} selected',
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_selectedLanguages.isEmpty)
+            InkWell(
+              onTap: _openLanguageSelection,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.borderColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add,
+                      color: AppTheme.primaryColor,
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Add Languages',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _selectedLanguages.map((language) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        language,
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      InkWell(
+                        onTap: () => setState(() => _selectedLanguages.remove(language)),
+                        borderRadius: BorderRadius.circular(8),
+                        child: const Icon(
+                          Icons.close,
+                          size: 14,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          if (_selectedLanguages.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _openLanguageSelection,
+              child: const Text(
+                'Add More Languages',
+                style: TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -787,80 +1134,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     );
   }
 
-  Widget _buildGenderSetting() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Gender Setting',
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                _genderSetting,
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              'Male', 'Female', 'Any'
-            ].map((gender) {
-              final isSelected = gender == _genderSetting;
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    right: gender != 'Any' ? 8 : 0,
-                    left: gender == 'Female' ? 8 : 0,
-                  ),
-                  child: InkWell(
-                    onTap: () => setState(() => _genderSetting = gender),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.primaryColor
-                            : AppTheme.backgroundColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        gender,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : AppTheme.textSecondary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildAgeRangeField() {
     return Container(
       decoration: BoxDecoration(
@@ -991,17 +1264,27 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              TextButton(
-                onPressed: _addInterest,
-                child: const Text(
-                  'Add Interests',
-                  style: TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+              Text(
+                '${_interests.length}/8',
+                style: TextStyle(
+                  color: _interests.length >= 3 && _interests.length <= 8
+                      ? AppTheme.textSecondary
+                      : AppTheme.errorColor,
+                  fontSize: 14,
                 ),
               ),
+              if (_interests.length < 8)
+                TextButton(
+                  onPressed: _addInterest,
+                  child: const Text(
+                    'Add Interest',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -1097,14 +1380,118 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     );
   }
 
+  Widget _buildJoinCostField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(
+            Icons.attach_money,
+            color: AppTheme.textSecondary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _joinCostController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 16,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Join cost fees (0-999)',
+                hintStyle: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 16,
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onChanged: (value) => setState(() {}),
+            ),
+          ),
+          const Text(
+            'points',
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHostAdditionalPointsField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(
+            Icons.add_circle_outline,
+            color: AppTheme.textSecondary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _hostAdditionalPointsController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 16,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Additional points to add (0-999)',
+                hintStyle: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 16,
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onChanged: (value) => setState(() {}),
+            ),
+          ),
+          const Text(
+            'points',
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _addInterest() {
+    if (_interests.length >= 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Maximum 8 interests allowed'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.surfaceColor,
-        title: const Text(
-          'Add Interest',
-          style: TextStyle(
+        title: Text(
+          'Add Interest (${_interests.length}/8)',
+          style: const TextStyle(
             color: AppTheme.textPrimary,
             fontWeight: FontWeight.bold,
           ),
@@ -1123,7 +1510,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             border: OutlineInputBorder(),
           ),
           onSubmitted: (value) {
-            if (value.trim().isNotEmpty && !_interests.contains(value.trim())) {
+            if (value.trim().isNotEmpty &&
+                !_interests.contains(value.trim()) &&
+                _interests.length < 8) {
               setState(() {
                 _interests.add(value.trim());
               });
@@ -1149,6 +1538,69 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               foregroundColor: Colors.white,
             ),
             child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openLanguageSelection() {
+    final availableLanguages = [
+      'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese',
+      'Chinese', 'Japanese', 'Korean', 'Arabic', 'Hindi', 'Russian'
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: const Text(
+          'Select Languages',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: availableLanguages.length,
+            itemBuilder: (context, index) {
+              final language = availableLanguages[index];
+              final isSelected = _selectedLanguages.contains(language);
+
+              return CheckboxListTile(
+                title: Text(
+                  language,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 16,
+                  ),
+                ),
+                value: isSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    if (value == true) {
+                      _selectedLanguages.add(language);
+                    } else {
+                      _selectedLanguages.remove(language);
+                    }
+                  });
+                },
+                activeColor: AppTheme.primaryColor,
+                checkColor: Colors.white,
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text(
+              'Done',
+              style: TextStyle(color: AppTheme.primaryColor),
+            ),
           ),
         ],
       ),

@@ -395,7 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildPremiumSection() {
-    final bool isPremium = false; // Mock premium status
+    final bool isPremium = true; // Mock premium status - set to true for testing
 
     return Container(
       decoration: BoxDecoration(

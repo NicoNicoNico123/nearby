@@ -905,72 +905,76 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             ),
             const SizedBox(height: AppTheme.spacingMD),
             // Show creator first
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    final creatorUser = User(
-                      id: _group.creatorId,
+            GestureDetector(
+              onTap: () {
+                final creatorUser = User(
+                  id: _group.creatorId,
+                  name: _group.creatorName,
+                  username: _group.creatorName.toLowerCase().replaceAll(' ', '_'),
+                  age: 25 + (_group.creatorId.hashCode % 20), // Mock age
+                  bio: 'Group creator who loves organizing dining experiences and meeting new people.',
+                  imageUrl: 'https://picsum.photos/100/100?random=creator',
+                  interests: ['Dining', 'Social', 'Food'],
+                  isAvailable: true,
+                  distance: 5.0,
+                  lastSeen: DateTime.now().subtract(const Duration(hours: 2)),
+                  intents: ['dining', 'friendship'],
+                );
+                _showMemberProfile(creatorUser);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    UserAvatar(
                       name: _group.creatorName,
-                      username: _group.creatorName.toLowerCase().replaceAll(' ', '_'),
-                      age: 25 + (_group.creatorId.hashCode % 20), // Mock age
-                      bio: 'Group creator who loves organizing dining experiences and meeting new people.',
                       imageUrl: 'https://picsum.photos/100/100?random=creator',
-                      interests: ['Dining', 'Social', 'Food'],
-                      isAvailable: true,
-                      distance: 5.0,
-                      lastSeen: DateTime.now().subtract(const Duration(hours: 2)),
-                      intents: ['dining', 'friendship'],
-                    );
-                    _showMemberProfile(creatorUser);
-                  },
-                  child: UserAvatar(
-                    name: _group.creatorName,
-                    imageUrl: 'https://picsum.photos/100/100?random=creator',
-                    size: 40,
-                  ),
-                ),
-                const SizedBox(width: AppTheme.spacingMD),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _group.creatorName,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                      size: 40,
+                    ),
+                    const SizedBox(width: AppTheme.spacingMD),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _group.creatorName,
+                            style: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Text(
+                            'Group Creator',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingSM,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Host',
+                        style: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Text(
-                        'Group Creator',
-                        style: TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.spacingSM,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Host',
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
             // Add current user if not creator and not a member
             if (!_group.isCreator(_currentUserId) &&
@@ -978,59 +982,63 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               const SizedBox(height: AppTheme.spacingMD),
               const Divider(),
               const SizedBox(height: AppTheme.spacingMD),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      _showMemberProfile(currentUser);
-                    },
-                    child: UserAvatar(
-                      name: currentUser.name,
-                      imageUrl: currentUser.imageUrl,
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(width: AppTheme.spacingMD),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentUser.name,
-                          style: const TextStyle(
-                            color: AppTheme.textPrimary,
+              GestureDetector(
+                onTap: () {
+                  _showMemberProfile(currentUser);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      UserAvatar(
+                        name: currentUser.name,
+                        imageUrl: currentUser.imageUrl,
+                        size: 40,
+                      ),
+                      const SizedBox(width: AppTheme.spacingMD),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              currentUser.name,
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const Text(
+                              'You',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingSM,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.textTertiary.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Not Joined',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const Text(
-                          'You',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spacingSM,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.textTertiary.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Not Joined',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
             // Waiting list info

@@ -1,5 +1,3 @@
-import 'dart:developer' as developer;
-
 class Group {
   final String id;
   final String name;
@@ -24,6 +22,16 @@ class Group {
   final int groupPot; // Total pot amount in points
   final int joinCost; // Cost to join in points
 
+  // New fields for Phase 1 enhancement
+  final String title; // Group title field
+  final List<String> allowedGenders; // Multiple gender options allowed
+  final Map<String, int> genderLimits; // Gender-based seat reservations
+  final List<String> allowedLanguages; // Language requirements
+  final int ageRangeMin; // Minimum age requirement
+  final int ageRangeMax; // Maximum age requirement
+  final int joinCostFees; // Additional join cost fees
+  final int hostAdditionalPoints; // Manually added points by host
+
   Group({
     required this.id,
     required this.name,
@@ -47,6 +55,15 @@ class Group {
     this.longitude,
     this.groupPot = 0,
     this.joinCost = 0,
+    // New fields with default values
+    this.title = '',
+    this.allowedGenders = const ['Male', 'Female', 'LGBTQ+'],
+    this.genderLimits = const {},
+    this.allowedLanguages = const [],
+    this.ageRangeMin = 18,
+    this.ageRangeMax = 100,
+    this.joinCostFees = 0,
+    this.hostAdditionalPoints = 0,
   });
 
   // Check if group is full
@@ -88,6 +105,15 @@ class Group {
     double? longitude,
     int? groupPot,
     int? joinCost,
+    // New fields
+    String? title,
+    List<String>? allowedGenders,
+    Map<String, int>? genderLimits,
+    List<String>? allowedLanguages,
+    int? ageRangeMin,
+    int? ageRangeMax,
+    int? joinCostFees,
+    int? hostAdditionalPoints,
   }) {
     return Group(
       id: id ?? this.id,
@@ -112,6 +138,15 @@ class Group {
       longitude: longitude ?? this.longitude,
       groupPot: groupPot ?? this.groupPot,
       joinCost: joinCost ?? this.joinCost,
+      // New fields
+      title: title ?? this.title,
+      allowedGenders: allowedGenders ?? this.allowedGenders,
+      genderLimits: genderLimits ?? this.genderLimits,
+      allowedLanguages: allowedLanguages ?? this.allowedLanguages,
+      ageRangeMin: ageRangeMin ?? this.ageRangeMin,
+      ageRangeMax: ageRangeMax ?? this.ageRangeMax,
+      joinCostFees: joinCostFees ?? this.joinCostFees,
+      hostAdditionalPoints: hostAdditionalPoints ?? this.hostAdditionalPoints,
     );
   }
 
@@ -140,6 +175,15 @@ class Group {
       'longitude': longitude,
       'groupPot': groupPot,
       'joinCost': joinCost,
+      // New fields
+      'title': title,
+      'allowedGenders': allowedGenders,
+      'genderLimits': genderLimits,
+      'allowedLanguages': allowedLanguages,
+      'ageRangeMin': ageRangeMin,
+      'ageRangeMax': ageRangeMax,
+      'joinCostFees': joinCostFees,
+      'hostAdditionalPoints': hostAdditionalPoints,
     };
   }
 
@@ -167,6 +211,21 @@ class Group {
       longitude: (json['longitude'] as num?)?.toDouble(),
       groupPot: json['groupPot'] as int? ?? 0,
       joinCost: json['joinCost'] as int? ?? 0,
+      // New fields with defaults for backward compatibility
+      title: json['title'] as String? ?? '',
+      allowedGenders: (json['allowedGenders'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? ['Male', 'Female', 'LGBTQ+'],
+      genderLimits: (json['genderLimits'] as Map<String, dynamic>?)?.map(
+        (key, value) => MapEntry(key, value as int),
+      ) ?? {},
+      allowedLanguages: (json['allowedLanguages'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? [],
+      ageRangeMin: json['ageRangeMin'] as int? ?? 18,
+      ageRangeMax: json['ageRangeMax'] as int? ?? 100,
+      joinCostFees: json['joinCostFees'] as int? ?? 0,
+      hostAdditionalPoints: json['hostAdditionalPoints'] as int? ?? 0,
     );
   }
 }

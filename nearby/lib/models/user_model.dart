@@ -18,7 +18,7 @@ class User {
   final String? mealInterest; // Meal interest preferences
   final String? starSign; // Star sign/zodiac
   final List<String> languages; // Languages spoken (required field)
-  final String gender; // Gender field with iconic options
+  final String gender; // Gender field - standardized options: Male, Female, LGBTQ+
 
   const User({
     required this.id,
@@ -39,7 +39,7 @@ class User {
     this.mealInterest,
     this.starSign,
     this.languages = const [],
-    this.gender = 'Prefer not to say',
+    this.gender = 'Female', // Default to one of the three standardized options
   });
 
   User copyWith({
@@ -141,8 +141,19 @@ class User {
           ?.map((e) => e as String)
           .toList() ??
           [],
-      gender: json['gender'] as String? ?? 'Prefer not to say',
+      gender: _validateGender(json['gender'] as String?),
     );
+  }
+
+  // Validate gender field to only accept standardized options
+  static String _validateGender(String? gender) {
+    const validGenders = ['Male', 'Female', 'LGBTQ+'];
+
+    if (gender == null || !validGenders.contains(gender)) {
+      return 'Female'; // Default fallback to one of the valid options
+    }
+
+    return gender;
   }
 
   @override
