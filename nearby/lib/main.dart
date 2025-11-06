@@ -3,6 +3,9 @@ import 'theme/app_theme.dart';
 import 'main_navigation.dart';
 import 'screens/messaging/chat_screen.dart';
 import 'screens/group_info_view/group_info_screen.dart';
+import 'screens/feed/filter_screen.dart';
+import 'screens/feed/interest_search_screen.dart';
+import 'screens/feed/language_search_screen.dart';
 import 'services/mock_data_service.dart';
 import 'utils/navigation_service.dart';
 import 'utils/logger.dart';
@@ -61,6 +64,29 @@ class NearbyApp extends StatelessWidget {
           }
         }
         return null;
+
+      case '/filter':
+        return MaterialPageRoute(
+          builder: (context) => const FilterScreen(),
+        );
+
+      case '/interest_search':
+        final args = settings.arguments as Map<String, dynamic>?;
+        final initiallySelected = args?['selectedInterests'] as Set<String>? ?? <String>{};
+        return MaterialPageRoute(
+          builder: (context) => InterestSearchScreen(
+            initiallySelectedInterests: initiallySelected,
+          ),
+        );
+
+      case '/language_search':
+        final args = settings.arguments as Map<String, dynamic>?;
+        final initiallySelected = args?['selectedLanguages'] as Set<String>? ?? <String>{};
+        return MaterialPageRoute(
+          builder: (context) => LanguageSearchScreen(
+            initiallySelectedLanguages: initiallySelected,
+          ),
+        );
 
       default:
         return null;

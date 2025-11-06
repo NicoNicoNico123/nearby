@@ -199,6 +199,54 @@ class MockDataService {
     return _groups;
   }
 
+  List<Group> getFilteredGroups({
+    List<String>? interests,
+    double? maxDistance,
+    double? minAge,
+    double? maxAge,
+    String? gender,
+    List<String>? languages,
+  }) {
+    final allGroups = getGroups();
+
+    return allGroups.where((group) {
+      // Filter by interests
+      if (interests != null && interests.isNotEmpty) {
+        final hasMatchingInterest = interests.any((interest) =>
+          group.interests.any((groupInterest) =>
+            groupInterest.toLowerCase().contains(interest.toLowerCase())
+          )
+        );
+        if (!hasMatchingInterest) return false;
+      }
+
+      
+      // Filter by age range (assuming group has age range or we use creator's age)
+      // For demo purposes, we'll simulate age filtering
+      if (minAge != null || maxAge != null) {
+        // This is a simplified implementation
+        // In a real app, groups would have age restrictions or member age data
+        final simulatedGroupAge = 20 + _random.nextInt(30); // Random age 20-50
+        if (minAge != null && simulatedGroupAge < minAge) return false;
+        if (maxAge != null && simulatedGroupAge > maxAge) return false;
+      }
+
+      // Filter by gender
+      if (gender != null && gender != 'All') {
+        // Simplified gender filtering - in real app would be based on group preferences
+        if (_random.nextBool() && gender != 'All') return false;
+      }
+
+      // Filter by languages
+      if (languages != null && languages.isNotEmpty) {
+        // Simplified language filtering
+        if (_random.nextBool()) return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
   Group? getGroupById(String id) {
     try {
       return getGroups().firstWhere((group) => group.id == id);
@@ -228,7 +276,6 @@ class MockDataService {
       'Artisan Bakery', 'Local Brew House', 'Fusion Kitchen', 'The Hidden Gem'
     ];
 
-    final intents = ['dining', 'romantic', 'networking', 'friendship'];
     final interestOptions = [
       ['Italian', 'Wine', 'Coffee'], ['Japanese', 'Sushi', 'Seafood'],
       ['Mexican', 'Tacos', 'SpicyFood'], ['Thai', 'Asian', 'Healthy'],
@@ -290,8 +337,7 @@ class MockDataService {
         creatorName: 'Host User',
         venue: venues[_random.nextInt(venues.length)],
         mealTime: mealTime,
-        intent: intents[_random.nextInt(intents.length)],
-        maxMembers: maxMembers,
+                maxMembers: maxMembers,
         memberIds: ['creator_user'], // In real app, this would contain actual user IDs
         waitingList: _random.nextBool() ? ['user_${_random.nextInt(10) + 11}'] : [],
         createdAt: createdDate,

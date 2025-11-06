@@ -130,10 +130,6 @@ class _FeedScreenState extends State<FeedScreen>
             ),
             tooltip: 'Filter Groups',
           ),
-          IconButton(
-            onPressed: () => _showSortOptions(),
-            icon: const Icon(Icons.sort, color: AppTheme.textPrimary),
-          ),
         ],
       ),
       body: RefreshIndicator(onRefresh: _refresh, child: _buildFeed()),
@@ -311,72 +307,95 @@ class _FeedScreenState extends State<FeedScreen>
   void _showFilterScreen() async {
     final result = await Navigator.pushNamed(context, '/filter');
     if (result != null && mounted) {
+      final filters = result as Map<String, dynamic>;
+
+      Logger.info('Applying filters: $filters');
+
       // Apply filters returned from filter screen
       setState(() {
         _groups.clear();
         _currentPage = 0;
         _hasMore = true;
       });
-      await _loadMoreGroups();
+      await _loadMoreGroupsWithFilters(filters);
 
       if (mounted) {
+        final filterCount = _getActiveFilterCount(filters);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Filters applied!'),
+          SnackBar(
+            content: Text('Filters applied! ($filterCount active)'),
             backgroundColor: AppTheme.primaryColor,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     }
   }
 
-  void _showSortOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
-            decoration: BoxDecoration(
-              color: AppTheme.textTertiary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingMD),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Sort by', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: AppTheme.spacingMD),
-                _buildSortOption('Distance (Nearest)', Icons.location_on),
-                _buildSortOption('Recently Active', Icons.access_time),
-                _buildSortOption('Newest Members', Icons.person_add),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  int _getActiveFilterCount(Map<String, dynamic> filters) {
+    int count = 0;
+    if (filters['interests'] != null && (filters['interests'] as List).isNotEmpty) count++;
+    if (filters['intent'] != null && filters['intent'].isNotEmpty) count++;
+    if (filters['maxDistance'] != null && filters['maxDistance'] != 25.0) count++;
+    if (filters['minAge'] != null && filters['maxAge'] != null) {
+      if (filters['minAge'] != 18.0 || filters['maxAge'] != 35.0) count++;
+    }
+    if (filters['gender'] != null && filters['gender'] != 'All') count++;
+    if (filters['languages'] != null && (filters['languages'] as List).isNotEmpty) count++;
+    return count;
   }
 
-  Widget _buildSortOption(String label, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.primaryColor),
-      title: Text(label),
-      onTap: () {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sort by $label - coming soon!')),
-        );
-      },
-    );
+  Future<void> _loadMoreGroupsWithFilters(Map<String, dynamic> filters) async {
+    if (_isLoading || !_hasMore) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await Future.delayed(
+        const Duration(milliseconds: 500),
+      ); // Simulate network
+
+      final allGroups = _dataService.getFilteredGroups(
+        interests: filters['interests'] as List<String>?,
+        maxDistance: filters['maxDistance'] as double?,
+        minAge: filters['minAge'] as double?,
+        maxAge: filters['maxAge'] as double?,
+        gender: filters['gender'] as String?,
+        languages: filters['languages'] as List<String>?,
+      );
+
+      final startIndex = _currentPage * _pageSize;
+      final endIndex = (startIndex + _pageSize).clamp(0, allGroups.length);
+
+      if (startIndex >= allGroups.length) {
+        setState(() {
+          _hasMore = false;
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final newGroups = allGroups.sublist(startIndex, endIndex);
+
+      setState(() {
+        _groups.addAll(newGroups);
+        _currentPage++;
+        _isLoading = false;
+        _hasMore = endIndex < allGroups.length;
+      });
+
+      Logger.info('Loaded ${newGroups.length} filtered groups (page $_currentPage)');
+    } catch (e) {
+      Logger.error('Failed to load filtered groups', error: e);
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
+  
   Widget _buildGroupCard(Group group) {
     return InkWell(
       onTap: () => _showGroupDetails(group),

@@ -15,25 +15,14 @@ class _FilterScreenState extends State<FilterScreen> {
 
   // Filter state
   Set<String> _selectedInterests = {};
-  String? _selectedIntent;
-  double _maxDistance = 25.0; // Default 25 miles/km
-  String _selectedAgeRange = 'All';
+    double _maxDistance = 25.0; // Default 25 miles/km
+  double _minAge = 18.0; // Default minimum age
+  double _maxAge = 40.0; // Default maximum age
   String _selectedGender = 'All';
   Set<String> _selectedLanguages = {};
 
   // Available options
-  List<String> _availableInterests = [];
-  List<String> _availableIntents = [];
-  List<String> _availableLanguages = [];
-
-  final List<String> _ageRanges = [
-    'All',
-    '18-25',
-    '26-35',
-    '36-45',
-    '46+'
-  ];
-
+  
   final List<String> _genderOptions = [
     'All',
     'Male',
@@ -49,28 +38,7 @@ class _FilterScreenState extends State<FilterScreen> {
   }
 
   void _loadAvailableOptions() {
-    final groups = _dataService.getGroups();
-
-    // Extract unique interests
-    final interestsSet = <String>{};
-    final intentsSet = <String>{};
-
-    for (final group in groups) {
-      interestsSet.addAll(group.interests);
-      if (group.intent.isNotEmpty) {
-        intentsSet.add(group.intent);
-      }
-    }
-
-    setState(() {
-      _availableInterests = interestsSet.toList()..sort();
-      _availableIntents = intentsSet.toList()..sort();
-      _availableLanguages = [
-        'English', 'Spanish', 'French', 'German', 'Italian',
-        'Portuguese', 'Chinese', 'Japanese', 'Korean', 'Arabic',
-        'Hindi', 'Russian', 'Dutch', 'Swedish', 'Norwegian'
-      ];
-    });
+    // Intent functionality removed
   }
 
   void _loadSavedFilters() {
@@ -78,9 +46,9 @@ class _FilterScreenState extends State<FilterScreen> {
     // In a real app, this would load from SharedPreferences
     setState(() {
       _selectedInterests = {};
-      _selectedIntent = null;
       _maxDistance = 25.0;
-      _selectedAgeRange = 'All';
+      _minAge = 18.0;
+      _maxAge = 40.0;
       _selectedGender = 'All';
       _selectedLanguages = {};
     });
@@ -126,12 +94,7 @@ class _FilterScreenState extends State<FilterScreen> {
             _buildInterestChips(),
             const SizedBox(height: AppTheme.spacingLG),
 
-            // Intent Filter
-            _buildSectionTitle('Intent'),
-            const SizedBox(height: AppTheme.spacingSM),
-            _buildIntentSelector(),
-            const SizedBox(height: AppTheme.spacingLG),
-
+            
             // Distance Filter
             _buildSectionTitle('Maximum Distance'),
             const SizedBox(height: AppTheme.spacingSM),
@@ -193,73 +156,78 @@ class _FilterScreenState extends State<FilterScreen> {
   }
 
   Widget _buildInterestChips() {
-    return Wrap(
-      spacing: AppTheme.spacingXS,
-      runSpacing: AppTheme.spacingXS,
-      children: _availableInterests.map((interest) {
-        final isSelected = _selectedInterests.contains(interest);
-        return FilterChip(
-          label: Text(interest),
-          selected: isSelected,
-          onSelected: (selected) {
-            setState(() {
-              if (selected) {
-                _selectedInterests.add(interest);
-              } else {
-                _selectedInterests.remove(interest);
-              }
-            });
-          },
-          backgroundColor: AppTheme.surfaceColor,
-          selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-          checkmarkColor: AppTheme.primaryColor,
-          labelStyle: TextStyle(
-            color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildIntentSelector() {
-    if (_availableIntents.isEmpty) {
-      return const Text(
-        'No intents available',
-        style: TextStyle(color: AppTheme.textSecondary),
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMD),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppTheme.dividerColor),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedIntent,
-          hint: const Text('Select intent'),
-          items: [
-            const DropdownMenuItem<String>(
-              value: null,
-              child: Text('All Intents'),
+    return InkWell(
+      onTap: _openInterestSearch,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppTheme.spacingMD),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.dividerColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Interests',
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: AppTheme.textTertiary,
+                ),
+              ],
             ),
-            ..._availableIntents.map((intent) => DropdownMenuItem<String>(
-              value: intent,
-              child: Text(intent),
-            )),
+            const SizedBox(height: AppTheme.spacingSM),
+            if (_selectedInterests.isEmpty)
+              Text(
+                'Select up to 2 interests',
+                style: const TextStyle(
+                  color: AppTheme.textTertiary,
+                  fontSize: 14,
+                ),
+              )
+            else
+              Wrap(
+                spacing: AppTheme.spacingXS,
+                runSpacing: AppTheme.spacingXS,
+                children: _selectedInterests.map((interest) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spacingSM,
+                      vertical: AppTheme.spacingXS,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      interest,
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
           ],
-          onChanged: (value) {
-            setState(() {
-              _selectedIntent = value;
-            });
-          },
         ),
       ),
     );
   }
 
+  
   Widget _buildDistanceSlider() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,56 +270,173 @@ class _FilterScreenState extends State<FilterScreen> {
   }
 
   Widget _buildAgeRangeSelector() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMD),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppTheme.dividerColor),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedAgeRange,
-          items: _ageRanges.map((range) => DropdownMenuItem<String>(
-            value: range,
-            child: Text(range),
-          )).toList(),
-          onChanged: (value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Age range display
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppTheme.spacingMD),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Age Range',
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                '${_minAge.round()} - ${_maxAge.round()} years',
+                style: const TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppTheme.spacingMD),
+
+        // Range Slider
+        RangeSlider(
+          values: RangeValues(_minAge, _maxAge),
+          min: 18.0,
+          max: 50.0,
+          divisions: 32,
+          activeColor: AppTheme.primaryColor,
+          inactiveColor: AppTheme.primaryColor.withValues(alpha: 0.3),
+          labels: RangeLabels(
+            '${_minAge.round()}',
+            '${_maxAge.round()}',
+          ),
+          onChanged: (RangeValues values) {
             setState(() {
-              _selectedAgeRange = value!;
+              _minAge = values.start;
+              _maxAge = values.end;
             });
           },
         ),
-      ),
+
+        const SizedBox(height: AppTheme.spacingMD),
+
+        // Age labels
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '18',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+            Text(
+              '35',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+            Text(
+              '50+',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: AppTheme.spacingSM),
+
+        Text(
+          'Select minimum and maximum age range',
+          style: const TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildLanguageChips() {
-    return Wrap(
-      spacing: AppTheme.spacingXS,
-      runSpacing: AppTheme.spacingXS,
-      children: _availableLanguages.map((language) {
-        final isSelected = _selectedLanguages.contains(language);
-        return FilterChip(
-          label: Text(language),
-          selected: isSelected,
-          onSelected: (selected) {
-            setState(() {
-              if (selected) {
-                _selectedLanguages.add(language);
-              } else {
-                _selectedLanguages.remove(language);
-              }
-            });
-          },
-          backgroundColor: AppTheme.surfaceColor,
-          selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-          checkmarkColor: AppTheme.primaryColor,
-          labelStyle: TextStyle(
-            color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-          ),
-        );
-      }).toList(),
+    return InkWell(
+      onTap: _openLanguageSearch,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppTheme.spacingMD),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.dividerColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Languages',
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: AppTheme.textTertiary,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingSM),
+            if (_selectedLanguages.isEmpty)
+              Text(
+                'Select up to 3 languages',
+                style: const TextStyle(
+                  color: AppTheme.textTertiary,
+                  fontSize: 14,
+                ),
+              )
+            else
+              Wrap(
+                spacing: AppTheme.spacingXS,
+                runSpacing: AppTheme.spacingXS,
+                children: _selectedLanguages.map((language) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spacingSM,
+                      vertical: AppTheme.spacingXS,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      language,
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -383,20 +468,48 @@ class _FilterScreenState extends State<FilterScreen> {
   void _clearAllFilters() {
     setState(() {
       _selectedInterests.clear();
-      _selectedIntent = null;
-      _maxDistance = 25.0;
-      _selectedAgeRange = 'All';
+            _maxDistance = 25.0;
+      _minAge = 18.0;
+      _maxAge = 40.0;
       _selectedGender = 'All';
       _selectedLanguages.clear();
     });
   }
 
+  void _openInterestSearch() async {
+    final result = await Navigator.pushNamed(
+      context,
+      '/interest_search',
+      arguments: {'selectedInterests': _selectedInterests},
+    );
+
+    if (result != null && result is Set<String>) {
+      setState(() {
+        _selectedInterests = result;
+      });
+    }
+  }
+
+  void _openLanguageSearch() async {
+    final result = await Navigator.pushNamed(
+      context,
+      '/language_search',
+      arguments: {'selectedLanguages': _selectedLanguages},
+    );
+
+    if (result != null && result is Set<String>) {
+      setState(() {
+        _selectedLanguages = result;
+      });
+    }
+  }
+
   void _applyFilters() {
     final filters = {
       'interests': _selectedInterests.toList(),
-      'intent': _selectedIntent,
-      'maxDistance': _maxDistance,
-      'ageRange': _selectedAgeRange,
+            'maxDistance': _maxDistance,
+      'minAge': _minAge,
+      'maxAge': _maxAge,
       'gender': _selectedGender,
       'languages': _selectedLanguages.toList(),
     };

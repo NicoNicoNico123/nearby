@@ -38,7 +38,7 @@ This plan outlines the UI enhancements needed across multiple screens to improve
 - [x] Create comprehensive filter screen (`screens/feed/filter_screen.dart`)
 - [x] Implement filter options:
   - [x] Interest multi-select with chips
-  - [x] Intent selection dropdown
+  - [x] ~~Intent selection dropdown~~ **REMOVED** - Intent field removed from data model
   - [x] Distance slider/radius selector
   - [x] Age range selector (15-20, 20-30, 30-40, 40+)
   - [x] Language multi-select
@@ -47,6 +47,7 @@ This plan outlines the UI enhancements needed across multiple screens to improve
 - [x] Implement filter persistence
 - [x] Add clear filters functionality
 - [x] Update MockDataService to support filtering
+- [x] **Remove intent field entirely** from data model and all related components
 
 **Completed Features:**
 - Full filter screen with all requested options
@@ -88,7 +89,7 @@ This plan outlines the UI enhancements needed across multiple screens to improve
 - [ ] Implement inline editing for:
   - [ ] Title (free to edit)
   - [ ] Description (free to edit)
-  - [ ] Intent (free to edit)
+  - [ ] ~~Intent (free to edit)~~ **REMOVED** - Intent field removed from data model
   - [ ] Interests (free to edit)
   - [ ] Meal Time (50 pts cost)
   - [ ] Venue (50 pts cost)
@@ -166,8 +167,8 @@ This plan outlines the UI enhancements needed across multiple screens to improve
     - [ ] Show current range ("18 - 35")
     - [ ] Dual-handle slider (styled as in UI with primary color)
     - [ ] Range labels and visual indicators
-  - [ ] **Intent section**:
-    - [ ] Interest field that show text with up to 1 - 3 words
+  - [ ] ~~**Intent section**~~:
+    - [ ] ~~Interest field that show text with up to 1 - 3 words~~ **REMOVED** - Intent field removed from data model
   - [ ] **Interests Section**:
     - [ ] "Add Interests" button
     - [ ] Interest tags with close buttons (Travel, Movie, Food shown)
@@ -400,6 +401,7 @@ dependencies:
 
 ### User Experience Goals
 - [x] 50% reduction in taps to find relevant groups (filter system) ✅ **COMPLETED**
+- [x] **Removed intent field** - Simplified data model and UI for cleaner user experience ✅ **COMPLETED**
 - [ ] 30% increase in group creation (navigation button)
 - [ ] Improved member discovery (profile popups)
 - [ ] Better host control retention (editing features)

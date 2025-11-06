@@ -27,8 +27,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   final _locationController = TextEditingController();
   final DateTime _mealTime = DateTime.now().add(const Duration(hours: 3));
   final List<String> _selectedInterests = [];
-  String _selectedIntent = 'dining';
-  int _maxMembers = 10;
+    int _maxMembers = 10;
 
   // Current user ID (in real app, this would come from auth service)
   static const String _currentUserId = 'current_user';
@@ -58,7 +57,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       creatorName: 'You',
       venue: '',
       mealTime: _mealTime,
-      intent: _selectedIntent,
       maxMembers: _maxMembers,
       memberIds: [_currentUserId],
       createdAt: DateTime.now(),
@@ -155,8 +153,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         const SizedBox(height: AppTheme.spacingMD),
         _buildDateTimePicker(),
         const SizedBox(height: AppTheme.spacingMD),
-        _buildIntentSelector(),
-        const SizedBox(height: AppTheme.spacingMD),
         _buildMaxMembersSelector(),
         const SizedBox(height: AppTheme.spacingMD),
         _buildInterestsSelector(),
@@ -240,44 +236,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     );
   }
 
-  Widget _buildIntentSelector() {
-    final intents = {
-      'dining': 'Casual Dining',
-      'romantic': 'Romantic Meal',
-      'networking': 'Professional Networking',
-      'friendship': 'Making Friends',
-    };
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Group Intent',
-          style: TextStyle(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: AppTheme.spacingSM),
-        ...intents.entries.map(
-          (entry) => RadioListTile<String>(
-            title: Text(entry.value),
-            value: entry.key,
-            groupValue: _selectedIntent,
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedIntent = value;
-                });
-              }
-            },
-            activeColor: AppTheme.primaryColor,
-          ),
-        ),
-      ],
-    );
-  }
-
+  
   Widget _buildMaxMembersSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -512,12 +471,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               'Members',
               '${_group.memberCount}/${_group.maxMembers}',
             ),
-            _buildInfoRow(
-              Icons.category,
-              'Intent',
-              _getIntentDisplay(_group.intent),
-            ),
-            const SizedBox(height: AppTheme.spacingMD),
+                        const SizedBox(height: AppTheme.spacingMD),
             if (_group.interests.isNotEmpty) ...[
               const Text(
                 'Interests',
@@ -910,16 +864,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     }
   }
 
-  String _getIntentDisplay(String intent) {
-    final intentMap = {
-      'dining': 'Casual Dining',
-      'romantic': 'Romantic Meal',
-      'networking': 'Professional Networking',
-      'friendship': 'Making Friends',
-    };
-    return intentMap[intent] ?? intent;
-  }
-
+  
   void _selectDateTime() async {
     final date = await showDatePicker(
       context: context,
@@ -979,7 +924,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         venue: _venueController.text.trim(),
         location: _locationController.text.trim(),
         interests: List.from(_selectedInterests),
-        intent: _selectedIntent,
         maxMembers: _maxMembers,
       );
       _isLoading = false;
@@ -1004,7 +948,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       _descriptionController.text = _group.description;
       _venueController.text = _group.venue;
       _locationController.text = _group.location ?? '';
-      _selectedIntent = _group.intent;
       _maxMembers = _group.maxMembers;
       _selectedInterests.clear();
       _selectedInterests.addAll(_group.interests);

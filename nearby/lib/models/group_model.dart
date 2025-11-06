@@ -13,8 +13,7 @@ class Group {
   final String creatorName;
   final String venue;
   final DateTime mealTime;
-  final String intent;
-  final int maxMembers;
+    final int maxMembers;
   final List<String> memberIds;
   final List<String> waitingList;
   final bool isActive;
@@ -38,8 +37,7 @@ class Group {
     required this.creatorName,
     required this.venue,
     required this.mealTime,
-    required this.intent,
-    this.maxMembers = 10,
+        this.maxMembers = 10,
     this.memberIds = const [],
     this.waitingList = const [],
     this.isActive = true,
@@ -80,8 +78,7 @@ class Group {
     String? creatorName,
     String? venue,
     DateTime? mealTime,
-    String? intent,
-    int? maxMembers,
+        int? maxMembers,
     List<String>? memberIds,
     List<String>? waitingList,
     bool? isActive,
@@ -105,8 +102,7 @@ class Group {
       creatorName: creatorName ?? this.creatorName,
       venue: venue ?? this.venue,
       mealTime: mealTime ?? this.mealTime,
-      intent: intent ?? this.intent,
-      maxMembers: maxMembers ?? this.maxMembers,
+            maxMembers: maxMembers ?? this.maxMembers,
       memberIds: memberIds ?? this.memberIds,
       waitingList: waitingList ?? this.waitingList,
       isActive: isActive ?? this.isActive,
@@ -134,8 +130,7 @@ class Group {
       'creatorName': creatorName,
       'venue': venue,
       'mealTime': mealTime.toIso8601String(),
-      'intent': intent,
-      'maxMembers': maxMembers,
+            'maxMembers': maxMembers,
       'memberIds': memberIds,
       'waitingList': waitingList,
       'isActive': isActive,
@@ -162,8 +157,7 @@ class Group {
       creatorName: json['creatorName'] as String,
       venue: json['venue'] as String,
       mealTime: DateTime.parse(json['mealTime'] as String),
-      intent: json['intent'] as String,
-      maxMembers: json['maxMembers'] as int? ?? 10,
+            maxMembers: json['maxMembers'] as int? ?? 10,
       memberIds: List<String>.from(json['memberIds'] as List? ?? []),
       waitingList: List<String>.from(json['waitingList'] as List? ?? []),
       isActive: json['isActive'] as bool? ?? true,
