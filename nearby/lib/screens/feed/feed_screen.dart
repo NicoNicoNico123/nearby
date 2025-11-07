@@ -453,87 +453,111 @@ class _FeedScreenState extends State<FeedScreen>
                         );
                       },
                     ),
-                    // Top overlay with pot and cost info
+                    // Top overlay with pot, cost, gender, and age info
                     Positioned(
                       top: AppTheme.spacingSM,
                       left: AppTheme.spacingSM,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Group Pot
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppTheme.spacingSM,
-                              vertical: AppTheme.spacingXS,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(1),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber,
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                  child: Icon(
-                                    Icons.savings,
-                                    color: Colors.white,
-                                    size: 12,
-                                  ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Group Pot
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spacingSM,
+                                  vertical: AppTheme.spacingXS,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${group.groupPot}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(999),
                                 ),
-                              ],
-                            ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber,
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                      child: Icon(
+                                        Icons.savings,
+                                        color: Colors.white,
+                                        size: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${group.groupPot}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppTheme.spacingXS),
+                              // Join Cost
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spacingSM,
+                                  vertical: AppTheme.spacingXS,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.attach_money,
+                                        color: Colors.white,
+                                        size: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${group.joinCost}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: AppTheme.spacingXS),
-                          // Join Cost
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppTheme.spacingSM,
-                              vertical: AppTheme.spacingXS,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(1),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.attach_money,
-                                    color: Colors.white,
-                                    size: 12,
-                                  ),
+                          const SizedBox(height: AppTheme.spacingXS),
+                          // Gender and Age Range Icons
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Gender Icons
+                              ...group.allowedGenders.take(3).map((gender) =>
+                                Padding(
+                                  padding: const EdgeInsets.only(right: AppTheme.spacingXS),
+                                  child: _buildGenderIcon(gender),
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${group.joinCost}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                              ),
+                              // Age Range Display
+                              if (group.ageRangeMin > 18 || group.ageRangeMax < 100) ...[
+                                const SizedBox(width: AppTheme.spacingXS),
+                                _buildAgeRangeDisplay(group.ageRangeMin, group.ageRangeMax),
                               ],
-                            ),
+                            ],
                           ),
                         ],
                       ),
@@ -1649,5 +1673,105 @@ class _FeedScreenState extends State<FeedScreen>
 
   String _getAvailabilityText(Group group) {
     return '${group.memberCount}/${group.maxMembers}';
+  }
+
+  // Helper method to build gender icon
+  Widget _buildGenderIcon(String gender) {
+    IconData iconData;
+    Color iconColor;
+
+    switch (gender.toLowerCase()) {
+      case 'male':
+        iconData = Icons.male;
+        iconColor = Colors.blue;
+        break;
+      case 'female':
+        iconData = Icons.female;
+        iconColor = Colors.pink;
+        break;
+      case 'lgbtq+':
+        iconData = Icons.diversity_3;
+        iconColor = Colors.purple;
+        break;
+      default:
+        iconData = Icons.person;
+        iconColor = Colors.grey;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingXS,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: iconColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              iconData,
+              color: Colors.white,
+              size: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to build age range display
+  Widget _buildAgeRangeDisplay(int minAge, int maxAge) {
+    String ageText;
+    if (maxAge >= 100) {
+      ageText = '$minAge+';
+    } else {
+      ageText = '$minAge-$maxAge';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingXS,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.cake,
+              color: Colors.white,
+              size: 10,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            ageText,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

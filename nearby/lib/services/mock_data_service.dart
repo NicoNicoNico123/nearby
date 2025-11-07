@@ -289,10 +289,57 @@ class MockDataService {
       ['Ramen', 'Japanese', 'Comfort'], ['Tapas', 'Spanish', 'Social']
     ];
 
+    final genderOptions = [
+      ['Male', 'Female'],
+      ['Male', 'Female', 'LGBTQ+'],
+      ['Female', 'LGBTQ+'],
+      ['Male'],
+      ['Female'],
+      ['LGBTQ+'],
+    ];
+
+    final languageOptions = [
+      ['English'],
+      ['English', 'Spanish'],
+      ['English', 'Mandarin'],
+      ['English', 'French'],
+      ['Spanish', 'French'],
+      ['English', 'Japanese'],
+    ];
+
     for (int i = 0; i < groupNames.length; i++) {
       final createdDate = DateTime.now().subtract(Duration(days: _random.nextInt(30)));
       final mealTime = DateTime.now().add(Duration(hours: _random.nextInt(48) + 1));
       final selectedInterest = interestOptions[_random.nextInt(interestOptions.length)];
+      final selectedGenders = genderOptions[_random.nextInt(genderOptions.length)];
+      final selectedLanguages = languageOptions[_random.nextInt(languageOptions.length)];
+
+      // Generate age ranges with variety
+      final ageRangeMin = [18, 21, 25, 30, 35][_random.nextInt(5)];
+      final ageRangeMax = [30, 40, 50, 65, 100][_random.nextInt(5)];
+
+      // Generate title for variety
+      final titles = ['Dinner Gathering', 'Food Adventure', 'Social Dining', 'Culinary Experience', 'Meet & Eat'];
+      final groupTitle = titles[_random.nextInt(titles.length)];
+
+      // Generate some fees and points
+      final joinCostFees = _random.nextInt(50);
+      final hostAdditionalPoints = _random.nextInt(100);
+
+      // Generate gender limits (optional)
+      final Map<String, int> genderLimits = {};
+      if (_random.nextBool()) {
+        final maxMembers = 10;
+        if (selectedGenders.contains('Male')) {
+          genderLimits['Male'] = _random.nextInt(maxMembers ~/ 2) + 1;
+        }
+        if (selectedGenders.contains('Female')) {
+          genderLimits['Female'] = _random.nextInt(maxMembers ~/ 2) + 1;
+        }
+        if (selectedGenders.contains('LGBTQ+')) {
+          genderLimits['LGBTQ+'] = _random.nextInt(3) + 1;
+        }
+      }
 
       // Create variety of availability states
       int memberCount;
@@ -346,6 +393,15 @@ class MockDataService {
         longitude: longitude,
         groupPot: groupPot,
         joinCost: joinCost,
+        // New fields for enhanced functionality
+        title: groupTitle,
+        allowedGenders: selectedGenders,
+        genderLimits: genderLimits,
+        allowedLanguages: selectedLanguages,
+        ageRangeMin: ageRangeMin,
+        ageRangeMax: ageRangeMax,
+        joinCostFees: joinCostFees,
+        hostAdditionalPoints: hostAdditionalPoints,
       ));
     }
 
