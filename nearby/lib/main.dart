@@ -7,16 +7,47 @@ import 'screens/create_group/create_group_screen.dart';
 import 'screens/feed/filter_screen.dart';
 import 'screens/feed/interest_search_screen.dart';
 import 'screens/feed/language_search_screen.dart';
-import 'services/mock_data_service.dart';
+import 'services/mock/mock_data_service.dart';
 import 'utils/navigation_service.dart';
 import 'utils/logger.dart';
+// Uncomment for development validation
+// import 'services/test/mock_data_validation.dart';
+
+// Global instance for easy access
+final mockDataService = MockDataService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Logger.info('Starting Nearby app');
 
-  // Initialize mock data service and simulate user activity
-  await MockDataService().simulateUserActivity();
+  // Initialize the modular mock data service first
+  try {
+    await mockDataService.initialize();
+    Logger.info('MockDataService initialized successfully');
+
+    // Verify data was loaded
+    final groups = mockDataService.getGroups();
+    final users = mockDataService.getUsers();
+    Logger.info('Loaded ${groups.length} groups and ${users.length} users');
+  } catch (e) {
+    Logger.error('Failed to initialize MockDataService', error: e);
+    // Continue with fallback data
+  }
+
+  // Set up preview mode (comment this out for production)
+  // 4 Distinct Scenarios - Uncomment any of these lines to test different user types:
+
+  // Scenario 1: Normal User (created 1 group)
+  // mockDataService.setPreviewNormalUserWithGroup();
+
+  // Scenario 2: Premium User (created 2 groups)
+  mockDataService.setPreviewPremiumUserWithGroups();
+
+  // Scenario 3: Guest User (no groups, 0 points)
+  // mockDataService.setPreviewGuestUser();
+
+  // Scenario 4: Godmode User (unlimited everything)
+  // mockDataService.setPreviewGodmodeUser();
 
   runApp(const NearbyApp());
 }
@@ -58,7 +89,7 @@ class NearbyApp extends StatelessWidget {
         if (args != null) {
           final groupId = args['groupId'] as String?;
           if (groupId != null) {
-            final group = MockDataService().getGroupById(groupId);
+            final group = mockDataService.getGroupById(groupId);
             return MaterialPageRoute(
               builder: (context) => GroupInfoScreen(group: group),
             );
@@ -67,13 +98,12 @@ class NearbyApp extends StatelessWidget {
         return null;
 
       case '/filter':
-        return MaterialPageRoute(
-          builder: (context) => const FilterScreen(),
-        );
+        return MaterialPageRoute(builder: (context) => const FilterScreen());
 
       case '/interest_search':
         final args = settings.arguments as Map<String, dynamic>?;
-        final initiallySelected = args?['selectedInterests'] as Set<String>? ?? <String>{};
+        final initiallySelected =
+            args?['selectedInterests'] as Set<String>? ?? <String>{};
         return MaterialPageRoute(
           builder: (context) => InterestSearchScreen(
             initiallySelectedInterests: initiallySelected,
@@ -82,7 +112,8 @@ class NearbyApp extends StatelessWidget {
 
       case '/language_search':
         final args = settings.arguments as Map<String, dynamic>?;
-        final initiallySelected = args?['selectedLanguages'] as Set<String>? ?? <String>{};
+        final initiallySelected =
+            args?['selectedLanguages'] as Set<String>? ?? <String>{};
         return MaterialPageRoute(
           builder: (context) => LanguageSearchScreen(
             initiallySelectedLanguages: initiallySelected,

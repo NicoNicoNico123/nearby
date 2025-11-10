@@ -3,7 +3,7 @@ import 'dart:math';
 import '../models/message_model.dart';
 import '../models/user_model.dart';
 import '../utils/logger.dart';
-import 'mock_data_service.dart';
+import 'mock/mock_data_service.dart';
 
 class MessagingService {
   static final MessagingService _instance = MessagingService._internal();
@@ -159,17 +159,35 @@ class MessagingService {
   // Create mock conversation data (group chats only)
   void _createMockConversations() {
     final currentUser = _getCurrentUser();
+    final mockUser = MockDataService().getCurrentMockUser();
+
+    // Calculate total conversations needed based on MockUser data
+    int totalConversations = 3; // Default fallback
+    if (mockUser != null) {
+      final activity = mockUser.activity;
+      totalConversations = activity.groupsCreated + activity.groupsJoined;
+    }
 
     // Group messages - use actual groups from MockDataService
     final groups = MockDataService().getGroups();
-    for (int i = 0; i < groups.length && i < 5; i++) { // Increase to 5 group conversations
+
+    // Get MockUser data to determine how many groups user created
+    int groupsCreatedByUser = 1; // Default fallback
+    if (mockUser != null) {
+      groupsCreatedByUser = mockUser.activity.groupsCreated;
+    }
+
+    for (int i = 0; i < groups.length && i < totalConversations; i++) { // Use MockUser data
       final group = groups[i];
       final groupId = group.id;
       final messages = <Message>[];
 
+      // Determine if this group should be created by current user
+      final isUserCreator = i < groupsCreatedByUser;
+
       messages.add(Message.system(
         id: 'msg_${groupId}_system1',
-        text: '${group.name} - ${group.venue}',
+        text: '${group.name} - ${group.venue}${isUserCreator ? ' (You are the host)' : ''}',
         timestamp: DateTime.now().subtract(Duration(hours: 8 + i * 2)),
       ));
 
@@ -194,7 +212,7 @@ class MessagingService {
       final currentUserMessages = _random.nextInt(2) + 1;
       for (int k = 0; k < currentUserMessages; k++) {
         messages.add(Message.text(
-          id: 'msg_${groupId}_current_${k}',
+          id: 'msg_${groupId}_current_$k',
           senderId: currentUser.id,
           senderName: currentUser.name,
           text: _getExpandedRandomMessage(isCurrentUser: true, category: group.category),

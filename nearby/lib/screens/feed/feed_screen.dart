@@ -4,7 +4,7 @@ import '../../theme/app_theme.dart';
 import '../../models/group_model.dart';
 import '../../widgets/loading_states.dart';
 import '../../services/map_service.dart';
-import '../../services/mock_data_service.dart';
+import '../../services/mock/mock_data_service.dart';
 import '../../utils/logger.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -21,6 +21,7 @@ class _FeedScreenState extends State<FeedScreen>
 
   final List<Group> _groups = [];
   bool _isLoading = false;
+  bool _isInitializing = true;
   bool _hasMore = true;
   int _currentPage = 0;
   final int _pageSize = 6;
@@ -32,8 +33,41 @@ class _FeedScreenState extends State<FeedScreen>
   @override
   void initState() {
     super.initState();
-    _loadMoreGroups();
+    _initializeDataService().then((_) {
+      _loadMoreGroups();
+    });
     _scrollController.addListener(_onScroll);
+  }
+
+  /// Initialize the mock data service
+  Future<void> _initializeDataService() async {
+    try {
+      Logger.info('Initializing MockDataService...');
+      await _dataService.initialize();
+
+      // Verify data was loaded
+      final groups = _dataService.getGroups();
+      final users = _dataService.getUsers();
+
+      Logger.info('MockDataService initialized successfully');
+      Logger.info('Loaded ${groups.length} groups and ${users.length} users');
+
+      // Log sample group data for verification
+      if (groups.isNotEmpty) {
+        final sampleGroup = groups.first;
+        Logger.info('Sample group: ${sampleGroup.name} - ${sampleGroup.memberCount}/${sampleGroup.maxMembers} members');
+      }
+    } catch (e) {
+      Logger.error('Failed to initialize MockDataService', error: e);
+      // Load with fallback data
+      await _dataService.forceRegenerateAllData();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isInitializing = false;
+        });
+      }
+    }
   }
 
   @override
@@ -51,7 +85,7 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Future<void> _loadMoreGroups() async {
-    if (_isLoading || !_hasMore) return;
+    if (_isLoading || !_hasMore || _isInitializing) return;
 
     setState(() {
       _isLoading = true;
@@ -61,7 +95,10 @@ class _FeedScreenState extends State<FeedScreen>
       await Future.delayed(
         const Duration(milliseconds: 500),
       ); // Simulate network
+
+      Logger.info('Loading groups from mock data service...');
       final allGroups = _dataService.getGroups();
+      Logger.info('Retrieved ${allGroups.length} groups from service');
       final startIndex = _currentPage * _pageSize;
       final endIndex = (startIndex + _pageSize).clamp(0, allGroups.length);
 
@@ -83,6 +120,11 @@ class _FeedScreenState extends State<FeedScreen>
       });
 
       Logger.info('Loaded ${newGroups.length} groups (page $_currentPage)');
+
+      // Debug: Log member counts for verification
+      for (final group in newGroups) {
+        Logger.debug('Group ${group.name}: ${group.memberCount}/${group.maxMembers} members (${group.availableSpots} available)');
+      }
     } catch (e) {
       Logger.error('Failed to load more groups', error: e);
       setState(() {
@@ -97,6 +139,9 @@ class _FeedScreenState extends State<FeedScreen>
       _currentPage = 0;
       _hasMore = true;
     });
+
+    // Re-initialize the service to ensure fresh data
+    await _initializeDataService();
     await _loadMoreGroups();
   }
 
@@ -137,11 +182,15 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Widget _buildFeed() {
+    if (_isInitializing) {
+      return _buildLoadingFeed();
+    }
+
     if (_groups.isEmpty && _isLoading) {
       return _buildLoadingFeed();
     }
 
-    if (_groups.isEmpty) {
+    if (_groups.isEmpty && !_isLoading) {
       return EmptyState(
         icon: Icons.group_outlined,
         title: 'No dining events available',
@@ -362,7 +411,7 @@ class _FeedScreenState extends State<FeedScreen>
         maxDistance: filters['maxDistance'] as double?,
         minAge: filters['minAge'] as double?,
         maxAge: filters['maxAge'] as double?,
-        gender: filters['gender'] as String?,
+        genders: filters['genders'] as List<String>?, // Changed from gender to genders
         languages: filters['languages'] as List<String>?,
       );
 

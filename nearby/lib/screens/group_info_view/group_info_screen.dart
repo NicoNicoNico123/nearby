@@ -6,7 +6,7 @@ import '../../models/group_model.dart';
 import '../../models/user_model.dart';
 import '../../widgets/user_avatar.dart';
 import '../../widgets/member_profile_popup.dart';
-import '../../services/mock_data_service.dart';
+import '../../services/mock/mock_data_service.dart';
 import '../../services/map_service.dart';
 import '../../utils/logger.dart';
 
@@ -37,6 +37,27 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   // Current user ID (in real app, this would come from auth service)
   static const String _currentUserId = 'current_user';
+
+  // Helper method to get actual member count including creator, current user, and all members
+  int get _actualMemberCount {
+    final Set<String> allMembers = <String>{};
+
+    // Always include the creator
+    allMembers.add(_group.creatorId);
+
+    // Include all member IDs from the list
+    allMembers.addAll(_group.memberIds);
+
+    // Ensure current user is counted if they're different from creator and not already in memberIds
+    if (_currentUserId != _group.creatorId && !allMembers.contains(_currentUserId)) {
+      allMembers.add(_currentUserId);
+    }
+
+    return allMembers.length;
+  }
+
+  // Helper method to get actual available spots
+  int get _actualAvailableSpots => _group.maxMembers - _actualMemberCount;
 
   @override
   void initState() {
@@ -564,7 +585,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             _buildInfoRow(
               Icons.people,
               'Members',
-              '${_group.memberCount}/${_group.maxMembers}',
+              '$_actualMemberCount/${_group.maxMembers}',
             ),
                         const SizedBox(height: AppTheme.spacingMD),
             if (_group.interests.isNotEmpty) ...[
@@ -781,8 +802,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                     ),
                   ),
                   Text(
-                    _group.availableSpots > 0
-                        ? '${_group.availableSpots} spots available'
+                    _actualAvailableSpots > 0
+                        ? '$_actualAvailableSpots spots available'
                         : 'Group is full - join waiting list',
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
@@ -893,10 +914,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Members (${_group.memberCount})',
+                  'Members ($_actualMemberCount)',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                if (_group.memberCount > 5)
+                if (_group.memberIds.length > 5)
                   TextButton(
                     onPressed: _showAllMembers,
                     child: const Text('View All'),
@@ -907,19 +928,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             // Show creator first
             GestureDetector(
               onTap: () {
-                final creatorUser = User(
-                  id: _group.creatorId,
-                  name: _group.creatorName,
-                  username: _group.creatorName.toLowerCase().replaceAll(' ', '_'),
-                  age: 25 + (_group.creatorId.hashCode % 20), // Mock age
-                  bio: 'Group creator who loves organizing dining experiences and meeting new people.',
-                  imageUrl: 'https://picsum.photos/100/100?random=creator',
-                  interests: ['Dining', 'Social', 'Food'],
-                  isAvailable: true,
-                  distance: 5.0,
-                  lastSeen: DateTime.now().subtract(const Duration(hours: 2)),
-                  intents: ['dining', 'friendship'],
-                );
+                final creatorUser = _generateCreatorUser();
                 _showMemberProfile(creatorUser);
               },
               behavior: HitTestBehavior.opaque,
@@ -937,12 +946,18 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            _group.creatorName,
-                            style: const TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                _group.creatorName,
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: AppTheme.spacingXS),
+                              _buildGenderIcon(['Male', 'Female', 'LGBTQ+'][_group.creatorId.hashCode % 3]),
+                            ],
                           ),
                           const Text(
                             'Group Creator',
@@ -1001,12 +1016,18 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              currentUser.name,
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  currentUser.name,
+                                  style: const TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: AppTheme.spacingXS),
+                                _buildGenderIcon(currentUser.gender),
+                              ],
                             ),
                             const Text(
                               'You',
@@ -1018,28 +1039,70 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                           ],
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.spacingSM,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.textTertiary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'Not Joined',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            // Add current user if they are a member (but not creator)
+            if (!_group.isCreator(_currentUserId) && _group.isMember(_currentUserId)) ...[
+              const SizedBox(height: AppTheme.spacingMD),
+              const Divider(),
+              const SizedBox(height: AppTheme.spacingMD),
+              GestureDetector(
+                onTap: () {
+                  _showMemberProfile(currentUser);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      UserAvatar(
+                        name: currentUser.name,
+                        imageUrl: currentUser.imageUrl,
+                        size: 40,
+                      ),
+                      const SizedBox(width: AppTheme.spacingMD),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  currentUser.name,
+                                  style: const TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: AppTheme.spacingXS),
+                                _buildGenderIcon(currentUser.gender),
+                              ],
+                            ),
+                            const Text(
+                              'You • Group Member',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+            ],
+            // Show other members (excluding creator and current user)
+            if (_group.memberIds.length > 2 ||
+                (_group.memberIds.length > 1 && !_group.isMember(_currentUserId))) ...[
+              const SizedBox(height: AppTheme.spacingMD),
+              const Divider(),
+              const SizedBox(height: AppTheme.spacingSM),
+              ..._buildOtherMembersList(),
             ],
             // Waiting list info
             if (_group.waitingList.isNotEmpty) ...[
@@ -1137,7 +1200,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           ),
         ] else ...[
           // Action buttons - Different based on availability
-          if (_group.availableSpots > 0) ...[
+          if (_actualAvailableSpots > 0) ...[
             // Groups with availability - Show Join and Superlike buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1217,7 +1280,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   children: [
                     const Icon(Icons.access_time, size: 20),
                     const SizedBox(width: AppTheme.spacingXS),
-                    Text('${_group.memberCount}/${_group.maxMembers}'),
+                    Text('$_actualMemberCount/${_group.maxMembers}'),
                     const SizedBox(width: AppTheme.spacingXS),
                     const Text('Waiting List'),
                   ],
@@ -2085,22 +2148,436 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   void _showAllMembers() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${_group.name} Members'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Show all members here in a real implementation
-            const Text('Full member list would be shown here'),
-          ],
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingLG),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppTheme.dividerColor)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${_group.name} Members',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Members list
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppTheme.spacingMD),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Creator
+                      _buildFullMemberItem(
+                        user: _generateCreatorUser(),
+                        role: 'Group Creator',
+                        roleColor: AppTheme.primaryColor,
+                      ),
+
+                      const SizedBox(height: AppTheme.spacingMD),
+                      const Divider(),
+                      const SizedBox(height: AppTheme.spacingMD),
+
+                      // Other members
+                      ..._generateAllMembers().asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final member = entry.value;
+
+                        return Column(
+                          children: [
+                            if (index > 0) ...[
+                              const SizedBox(height: AppTheme.spacingMD),
+                              const Divider(),
+                              const SizedBox(height: AppTheme.spacingMD),
+                            ],
+                            _buildFullMemberItem(
+                              user: member,
+                              role: member.id == _currentUserId ? 'You' : 'Group Member',
+                              roleColor: member.id == _currentUserId
+                                  ? AppTheme.textTertiary
+                                  : AppTheme.textSecondary,
+                            ),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+      ),
+    );
+  }
+
+  // Generate creator user using mock data service
+  User _generateCreatorUser() {
+    // Try to get creator from mock data service first
+    final existingCreator = _dataService.getUserById(_group.creatorId);
+
+    if (existingCreator != null) {
+      // Use existing user data from mock service with group-specific adjustments
+      return existingCreator.copyWith(
+        name: _group.creatorName, // Use the group's creator name
+        bio: existingCreator.bio, // Use real bio from mock service
+        intents: ['dining', 'friendship'], // Ensure consistent intents for this screen
+      );
+    } else {
+      // Create a fallback creator user if not found in mock service
+      Logger.warning('Creator with ID ${_group.creatorId} not found in mock data service, creating fallback user');
+      return User(
+        id: _group.creatorId,
+        name: _group.creatorName,
+        username: _group.creatorId,
+        bio: 'Group creator passionate about dining and social experiences',
+        age: 25 + (_group.creatorId.hashCode.abs() % 20), // Random age 25-45
+        gender: ['Male', 'Female', 'LGBTQ+'][(_group.creatorId.hashCode % 3)],
+        interests: ['Dining', 'Social', 'Food Exploration'],
+        intents: ['dining', 'friendship'],
+        imageUrl: 'https://picsum.photos/200/200?random=${_group.creatorId}',
+        isPremium: false,
+        isVerified: true,
+        points: 500,
+        userType: 'creator',
+        lastSeen: DateTime.now(),
+      );
+    }
+  }
+
+  // Helper method to generate user data with fallback
+  User _generateUserData(String memberId, {bool isCurrentUser = false}) {
+    // Get user from mock data service
+    final existingUser = _dataService.getUserById(memberId);
+    if (existingUser != null) {
+      // Use existing user data from mock service with optional current user adjustments
+      return existingUser.copyWith(
+        name: isCurrentUser ? 'You' : existingUser.name,
+        username: isCurrentUser ? 'current_user' : existingUser.username,
+        bio: isCurrentUser ? 'Your bio here' : existingUser.bio,
+        intents: ['dining', 'friendship'], // Ensure consistent intents for this screen
+      );
+    } else {
+      // Create a fallback user if not found in mock service
+      Logger.warning('User with ID $memberId not found in mock data service, creating fallback user');
+      return User(
+        id: memberId,
+        name: isCurrentUser ? 'You' : 'User $memberId',
+        username: memberId,
+        bio: isCurrentUser ? 'Your bio here' : 'Dining enthusiast and social explorer',
+        age: 22 + (memberId.hashCode.abs() % 25), // Random age 22-47
+        gender: ['Male', 'Female', 'LGBTQ+'][memberId.hashCode.abs() % 3],
+        interests: ['Dining', 'Social', 'Food'],
+        intents: ['dining', 'friendship'],
+        imageUrl: 'https://picsum.photos/200/200?random=$memberId',
+        isPremium: isCurrentUser ? false : (memberId.hashCode.abs() % 3 == 0),
+        isVerified: isCurrentUser ? true : (memberId.hashCode.abs() % 2 == 0),
+        points: 100 + (memberId.hashCode.abs() % 400),
+        userType: 'normal',
+        lastSeen: DateTime.now(),
+      );
+    }
+  }
+
+  // Generate all other members using mock data service
+  List<User> _generateAllMembers() {
+    final memberIds = _group.memberIds.where((id) => id != _group.creatorId).toList();
+
+    return memberIds.map((memberId) {
+      return _generateUserData(memberId, isCurrentUser: memberId == _currentUserId);
+    }).toList();
+  }
+
+  // Build full member item for the dialog
+  Widget _buildFullMemberItem({
+    required User user,
+    required String role,
+    required Color roleColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacingMD),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.dividerColor),
+      ),
+      child: Row(
+        children: [
+          // Avatar
+          UserAvatar(
+            name: user.name,
+            imageUrl: user.imageUrl,
+            size: 50,
+          ),
+          const SizedBox(width: AppTheme.spacingMD),
+
+          // User info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Name and gender icon
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        user.name,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spacingXS),
+                    _buildGenderIcon(user.gender),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.spacingXS),
+
+                // Role and age
+                Text(
+                  '$role • ${_getAgeRange(user.age ?? 25)}',
+                  style: TextStyle(
+                    color: roleColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingXS),
+
+                // Interests
+                const SizedBox(height: AppTheme.spacingSM),
+                Wrap(
+                  spacing: AppTheme.spacingXS,
+                  runSpacing: AppTheme.spacingXS,
+                  children: user.interests.take(3).map((interest) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingSM,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        interest,
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+
+          // View profile button
+          IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showMemberProfile(user);
+            },
+            icon: const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: AppTheme.textTertiary,
+            ),
           ),
         ],
       ),
     );
   }
+
+  // Convert age to age range
+  String _getAgeRange(int age) {
+    if (age <= 20) return '20-';
+    if (age <= 30) return '21-30';
+    if (age <= 40) return '31-40';
+    if (age <= 50) return '41-50';
+    return '50+';
+  }
+
+  List<Widget> _buildOtherMembersList() {
+    final otherMemberIds = _group.memberIds
+        .where((id) => id != _group.creatorId && id != _currentUserId)
+        .toList(); // Show all other members (no limit)
+
+    return otherMemberIds.asMap().entries.map((entry) {
+      final memberIndex = entry.key;
+      final memberId = entry.value;
+
+      // Use the shared helper method to generate user data
+      final user = _generateUserData(memberId, isCurrentUser: false);
+
+      return Column(
+        children: [
+          if (memberIndex > 0) const SizedBox(height: AppTheme.spacingMD),
+          GestureDetector(
+            onTap: () => _showMemberProfile(user),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  UserAvatar(
+                    name: user.name,
+                    imageUrl: user.imageUrl,
+                    size: 40,
+                  ),
+                  const SizedBox(width: AppTheme.spacingMD),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              user.name,
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: AppTheme.spacingXS),
+                            _buildGenderIcon(user.gender),
+                          ],
+                        ),
+                        Text(
+                          'Group Member',
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }).toList();
+  }
+
+  
+// Helper method to build gender icon
+  Widget _buildGenderIcon(String gender) {
+    switch (gender.toLowerCase()) {
+      case 'male':
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.blue.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Icon(
+            Icons.male,
+            size: 16,
+            color: Colors.blue,
+          ),
+        );
+      case 'female':
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.pink.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Icon(
+            Icons.female,
+            size: 16,
+            color: Colors.pink,
+          ),
+        );
+      case 'lgbtq+':
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: CustomPaint(
+            size: const Size(16, 12),
+            painter: RainbowFlagPainter(),
+          ),
+        );
+      default:
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Icon(
+            Icons.person,
+            size: 16,
+            color: Colors.grey,
+          ),
+        );
+    }
+  }
+}
+
+// Custom painter for rainbow flag
+class RainbowFlagPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    final stripeHeight = size.height / 6;
+
+    // Rainbow flag colors (top to bottom)
+    final colors = [
+      const Color(0xFFE40303), // Red
+      const Color(0xFFFF8C00), // Orange
+      const Color(0xFFFFED00), // Yellow
+      const Color(0xFF008026), // Green
+      const Color(0xFF004CFF), // Blue
+      const Color(0xFF750787), // Purple
+    ];
+
+    // Draw each stripe
+    for (int i = 0; i < colors.length; i++) {
+      paint.color = colors[i];
+      canvas.drawRect(
+        Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

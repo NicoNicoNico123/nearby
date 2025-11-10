@@ -451,13 +451,7 @@ class _MemberProfilePopupState extends State<MemberProfilePopup>
           ),
           const SizedBox(height: AppTheme.spacingMD),
           if (widget.user.age != null)
-            _buildInfoRow(Icons.cake, 'Age', '${widget.user.age} years old'),
-          if (widget.user.distance != null)
-            _buildInfoRow(Icons.location_on, 'Distance', '${widget.user.distance!.toInt()} miles away'),
-          _buildInfoRow(Icons.access_time, 'Last Seen',
-            widget.user.lastSeen != null
-                ? _formatLastSeen(widget.user.lastSeen!)
-                : 'Unknown'),
+            _buildInfoRow(Icons.cake, 'Age', _getAgeRange(widget.user.age!)),
         ],
       ),
     );
@@ -584,19 +578,13 @@ class _MemberProfilePopupState extends State<MemberProfilePopup>
     );
   }
 
-  String _formatLastSeen(DateTime lastSeen) {
-    final now = DateTime.now();
-    final difference = now.difference(lastSeen);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
-    } else {
-      return 'Just now';
-    }
+  // Convert age to age range
+  String _getAgeRange(int age) {
+    if (age <= 20) return '20-';
+    if (age <= 30) return '21-30';
+    if (age <= 40) return '31-40';
+    if (age <= 50) return '41-50';
+    return '50+';
   }
 
   String _formatIntent(String intent) {

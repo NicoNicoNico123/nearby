@@ -20,6 +20,14 @@ class User {
   final List<String> languages; // Languages spoken (required field)
   final String gender; // Gender field - standardized options: Male, Female, LGBTQ+
 
+  // User type and subscription fields
+  final String userType; // 'normal', 'premium', 'creator', 'admin'
+  final bool isPremium; // Quick check for premium features
+  final String? subscriptionLevel; // 'basic', 'premium', 'vip', etc.
+  final DateTime? subscriptionExpiry; // When premium expires
+  final int points; // User's points balance
+  final bool isVerified; // Verified account badge
+
   const User({
     required this.id,
     required this.name,
@@ -40,6 +48,13 @@ class User {
     this.starSign,
     this.languages = const [],
     this.gender = 'Female', // Default to one of the three standardized options
+    // User type and subscription defaults
+    this.userType = 'normal',
+    this.isPremium = false,
+    this.subscriptionLevel,
+    this.subscriptionExpiry,
+    this.points = 100, // Default starting points
+    this.isVerified = false,
   });
 
   User copyWith({
@@ -62,6 +77,13 @@ class User {
     String? starSign,
     List<String>? languages,
     String? gender,
+    // User type and subscription fields
+    String? userType,
+    bool? isPremium,
+    String? subscriptionLevel,
+    DateTime? subscriptionExpiry,
+    int? points,
+    bool? isVerified,
   }) {
     return User(
       id: id ?? this.id,
@@ -83,6 +105,13 @@ class User {
       starSign: starSign ?? this.starSign,
       languages: languages ?? this.languages,
       gender: gender ?? this.gender,
+      // User type and subscription fields
+      userType: userType ?? this.userType,
+      isPremium: isPremium ?? this.isPremium,
+      subscriptionLevel: subscriptionLevel ?? this.subscriptionLevel,
+      subscriptionExpiry: subscriptionExpiry ?? this.subscriptionExpiry,
+      points: points ?? this.points,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 
@@ -107,6 +136,13 @@ class User {
       'starSign': starSign,
       'languages': languages,
       'gender': gender,
+      // User type and subscription fields
+      'userType': userType,
+      'isPremium': isPremium,
+      'subscriptionLevel': subscriptionLevel,
+      'subscriptionExpiry': subscriptionExpiry?.toIso8601String(),
+      'points': points,
+      'isVerified': isVerified,
     };
   }
 
@@ -142,6 +178,15 @@ class User {
           .toList() ??
           [],
       gender: _validateGender(json['gender'] as String?),
+      // User type and subscription fields
+      userType: json['userType'] as String? ?? 'normal',
+      isPremium: json['isPremium'] as bool? ?? false,
+      subscriptionLevel: json['subscriptionLevel'] as String?,
+      subscriptionExpiry: json['subscriptionExpiry'] != null
+          ? DateTime.parse(json['subscriptionExpiry'] as String)
+          : null,
+      points: json['points'] as int? ?? 100,
+      isVerified: json['isVerified'] as bool? ?? false,
     );
   }
 

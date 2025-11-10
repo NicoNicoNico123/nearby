@@ -4,6 +4,8 @@ import '../../utils/logger.dart';
 import '../user_profile/profile_screen.dart';
 import '../../widgets/user_avatar.dart';
 import '../../models/user_model.dart';
+import '../../services/mock/mock_data_service.dart';
+import '../../services/mock/mock_user.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,25 +15,38 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _nameController = TextEditingController(text: 'Alexandra Davis');
-  final _bioController = TextEditingController(text: 'Lover of coffee and minimalist design. Exploring the world one city at a time.');
-  final _usernameController = TextEditingController(text: 'alexandra_d');
+  late final TextEditingController _nameController;
+  late final TextEditingController _bioController;
+  late final TextEditingController _usernameController;
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    _currentUser = MockDataService().getCurrentUser();
+    _nameController = TextEditingController(text: _currentUser?.name ?? '');
+    _bioController = TextEditingController(text: _currentUser?.bio ?? '');
+    _usernameController = TextEditingController(text: _currentUser?.username ?? '');
+  }
+
+  MockUserActivity? _getUserActivity() {
+    return MockDataService().getCurrentMockUser()?.activity;
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _bioController.dispose();
+    _usernameController.dispose();
     super.dispose();
   }
 
   User _getCurrentUser() {
-    return User(
-      id: 'current_user',
-      name: _nameController.text,
-      username: _usernameController.text,
-      bio: _bioController.text,
-      imageUrl: 'https://picsum.photos/200/200?random=current',
-    );
+    return _currentUser ?? MockDataService().getCurrentUser();
   }
 
   @override
@@ -189,13 +204,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildUserStatistics() {
-    // Mock statistics with limits - in a real app, these would come from a service
-    final int currentJoinedGroups = 3;
-    final int maxJoinedGroups = 5;
-    final int pointsBalance = 250;
-    final int currentCreatedGroups = 0;
-    final int maxCreatedGroups = 2;
-    final int eventsAttended = 8;
+    // Get data from MockUser service
+    final user = _getCurrentUser();
+    final mockUser = MockDataService().getCurrentMockUser();
+    final activity = mockUser?.activity;
+
+    // Use MockUser data if available, fallback to defaults
+    final int currentJoinedGroups = activity?.groupsJoined ?? 0;
+    final int maxJoinedGroups = activity?.groupsJoinedLimit ?? 5;
+    final int pointsBalance = user.points;
+    final int currentCreatedGroups = activity?.groupsCreated ?? 0;
+    final int maxCreatedGroups = activity?.groupsCreatedLimit ?? 2;
+    final int eventsAttended = activity?.eventsAttended ?? 0;
+
+    // Helper functions for display
+    String formatGroupCount(int current, int max) {
+      if (max == -1) {
+        return '$current/∞';
+      }
+      return '$current/$max';
+    }
+
+    bool isNearLimit(int current, int max) {
+      if (max == -1) return false; // Unlimited users are never near limit
+      return current >= max - 1;
+    }
 
     return Card(
       child: Padding(
@@ -235,20 +268,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    icon: Icons.group,
-                    title: 'Joined Groups',
-                    value: '$currentJoinedGroups/$maxJoinedGroups',
-                    color: AppTheme.primaryColor,
-                    isNearLimit: currentJoinedGroups >= maxJoinedGroups - 1,
+                    icon: Icons.add_circle,
+                    title: 'Groups Created',
+                    value: formatGroupCount(currentCreatedGroups, maxCreatedGroups),
+                    color: AppTheme.successColor,
+                    isNearLimit: isNearLimit(currentCreatedGroups, maxCreatedGroups),
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingMD),
                 Expanded(
                   child: _buildStatCard(
-                    icon: Icons.monetization_on,
-                    title: 'Points Balance',
-                    value: pointsBalance.toString(),
-                    color: Colors.amber,
+                    icon: Icons.group,
+                    title: 'Groups Joined',
+                    value: formatGroupCount(currentJoinedGroups, maxJoinedGroups),
+                    color: AppTheme.primaryColor,
+                    isNearLimit: isNearLimit(currentJoinedGroups, maxJoinedGroups),
                   ),
                 ),
               ],
@@ -258,11 +292,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    icon: Icons.add_circle,
-                    title: 'Groups Created',
-                    value: '$currentCreatedGroups/$maxCreatedGroups',
-                    color: AppTheme.successColor,
-                    isNearLimit: currentCreatedGroups >= maxCreatedGroups - 1,
+                    icon: Icons.monetization_on,
+                    title: 'Points Balance',
+                    value: pointsBalance.toString(),
+                    color: Colors.orange,
+                    isNearLimit: pointsBalance < 50,
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingMD),

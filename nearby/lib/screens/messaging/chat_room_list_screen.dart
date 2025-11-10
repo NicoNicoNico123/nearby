@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/message_model.dart';
 import '../../services/messaging_service.dart';
+import '../../services/mock/mock_data_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/user_avatar.dart';
 import '../../utils/logger.dart';
@@ -14,13 +15,17 @@ class ChatRoomListScreen extends StatefulWidget {
 
 class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   final MessagingService _messagingService = MessagingService();
+  final MockDataService _mockDataService = MockDataService();
   List<Conversation> _conversations = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadConversations();
+    // Use WidgetsBinding to ensure the widget is fully built before loading data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadConversations();
+    });
   }
 
   Future<void> _loadConversations() async {
@@ -36,12 +41,25 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
       });
     } catch (e) {
       Logger.error('Error loading conversations: $e');
-      if (mounted) {
+      if (mounted && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading messages')),
         );
       }
     }
+  }
+
+  // Check if the current user is the creator of the group based on MockUser data
+  bool _isUserGroupCreator(String groupId) {
+    final mockUser = _mockDataService.getCurrentMockUser();
+    if (mockUser == null) return false;
+
+    final conversations = _messagingService.getConversations();
+    final groupIndex = conversations.indexWhere((conv) => conv.id == groupId);
+
+    // If this is one of the first N conversations where N = groupsCreated,
+    // then this group should be considered as created by the user
+    return groupIndex < mockUser.activity.groupsCreated;
   }
 
   @override
@@ -149,14 +167,43 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          conversation.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                conversation.name,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Show "Owner" badge if user created this group
+                            if (conversation.isGroup && _isUserGroupCreator(conversation.id)) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  'OWNER',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                       Text(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import '../../services/mock_data_service.dart';
+import '../../services/mock/mock_data_service.dart';
 import '../../utils/logger.dart';
 
 class FilterScreen extends StatefulWidget {
@@ -18,16 +18,15 @@ class _FilterScreenState extends State<FilterScreen> {
     double _maxDistance = 25.0; // Default 25 miles/km
   double _minAge = 18.0; // Default minimum age
   double _maxAge = 40.0; // Default maximum age
-  String _selectedGender = 'All';
+  Set<String> _selectedGenders = {}; // Changed to Set for multi-select
   Set<String> _selectedLanguages = {};
 
   // Available options
-  
+
   final List<String> _genderOptions = [
-    'All',
     'Male',
     'Female',
-    'Other'
+    'LGBTQ+'
   ];
 
   @override
@@ -49,7 +48,7 @@ class _FilterScreenState extends State<FilterScreen> {
       _maxDistance = 25.0;
       _minAge = 18.0;
       _maxAge = 40.0;
-      _selectedGender = 'All';
+      _selectedGenders = {}; // Start with empty set for multi-select
       _selectedLanguages = {};
     });
   }
@@ -190,36 +189,54 @@ class _FilterScreenState extends State<FilterScreen> {
             const SizedBox(height: AppTheme.spacingSM),
             if (_selectedInterests.isEmpty)
               Text(
-                'Select up to 2 interests',
+                'Select up to 3 interests',
                 style: const TextStyle(
                   color: AppTheme.textTertiary,
                   fontSize: 14,
                 ),
               )
             else
-              Wrap(
-                spacing: AppTheme.spacingXS,
-                runSpacing: AppTheme.spacingXS,
-                children: _selectedInterests.map((interest) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spacingSM,
-                      vertical: AppTheme.spacingXS,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: AppTheme.spacingXS,
+                    runSpacing: AppTheme.spacingXS,
+                    children: _selectedInterests.map((interest) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingSM,
+                          vertical: AppTheme.spacingXS,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          interest,
+                          style: const TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: AppTheme.spacingXS),
+                  Text(
+                    '${_selectedInterests.length}/3 selected',
+                    style: TextStyle(
+                      color: _selectedInterests.length >= 3
+                          ? AppTheme.textSecondary
+                          : AppTheme.textTertiary,
+                      fontSize: 12,
+                      fontWeight: _selectedInterests.length >= 3
+                          ? FontWeight.w500
+                          : FontWeight.normal,
                     ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      interest,
-                      style: const TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
           ],
         ),
@@ -443,23 +460,147 @@ class _FilterScreenState extends State<FilterScreen> {
   Widget _buildGenderSelector() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMD),
+      padding: const EdgeInsets.all(AppTheme.spacingMD),
       decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.dividerColor),
-        borderRadius: BorderRadius.circular(8),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedGender,
-          items: _genderOptions.map((gender) => DropdownMenuItem<String>(
-            value: gender,
-            child: Text(gender),
-          )).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedGender = value!;
-            });
-          },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with Select All option
+          Row(
+            children: [
+              Text(
+                'Gender',
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    if (_selectedGenders.length == _genderOptions.length) {
+                      // If all are selected, clear all
+                      _selectedGenders.clear();
+                    } else {
+                      // Select all genders
+                      _selectedGenders = Set.from(_genderOptions);
+                    }
+                  });
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  _selectedGenders.length == _genderOptions.length ? 'Clear All' : 'Select All',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spacingSM),
+
+          // Selected genders display
+          if (_selectedGenders.isEmpty)
+            Text(
+              'Select genders to filter',
+              style: const TextStyle(
+                color: AppTheme.textTertiary,
+                fontSize: 14,
+              ),
+            )
+          else
+            Wrap(
+              spacing: AppTheme.spacingXS,
+              runSpacing: AppTheme.spacingXS,
+              children: _selectedGenders.map((gender) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingSM,
+                    vertical: AppTheme.spacingXS,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    gender,
+                    style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+
+          const SizedBox(height: AppTheme.spacingMD),
+
+          // Gender checkboxes
+          ..._genderOptions.map((gender) => _buildGenderCheckbox(gender)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenderCheckbox(String gender) {
+    final bool isSelected = _selectedGenders.contains(gender);
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _selectedGenders.remove(gender);
+          } else {
+            _selectedGenders.add(gender);
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: isSelected ? AppTheme.primaryColor : AppTheme.dividerColor,
+                  width: 2,
+                ),
+                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+              ),
+              child: isSelected
+                  ? Icon(
+                      Icons.check,
+                      size: 14,
+                      color: Colors.white,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: AppTheme.spacingSM),
+            Text(
+              gender,
+              style: TextStyle(
+                color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -471,7 +612,7 @@ class _FilterScreenState extends State<FilterScreen> {
             _maxDistance = 25.0;
       _minAge = 18.0;
       _maxAge = 40.0;
-      _selectedGender = 'All';
+      _selectedGenders.clear();
       _selectedLanguages.clear();
     });
   }
@@ -510,7 +651,7 @@ class _FilterScreenState extends State<FilterScreen> {
             'maxDistance': _maxDistance,
       'minAge': _minAge,
       'maxAge': _maxAge,
-      'gender': _selectedGender,
+      'genders': _selectedGenders.toList(), // Changed to list for multi-select
       'languages': _selectedLanguages.toList(),
     };
 

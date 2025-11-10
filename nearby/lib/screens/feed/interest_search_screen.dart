@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import '../../services/mock_data_service.dart';
+import '../../services/mock/mock_data_service.dart';
 
 class InterestSearchScreen extends StatefulWidget {
   final Set<String> initiallySelectedInterests;
@@ -99,13 +99,13 @@ class _InterestSearchScreenState extends State<InterestSearchScreen> {
     setState(() {
       if (_selectedInterests.contains(interest)) {
         _selectedInterests.remove(interest);
-      } else if (_selectedInterests.length < 2) {
+      } else if (_selectedInterests.length < 3) {
         _selectedInterests.add(interest);
       } else {
-        // Show message that maximum 2 interests can be selected
+        // Show message that maximum 3 interests can be selected
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Maximum 2 interests can be selected'),
+            content: Text('Maximum 3 interests can be selected'),
             backgroundColor: AppTheme.primaryColor,
             duration: Duration(seconds: 2),
           ),
@@ -205,7 +205,7 @@ class _InterestSearchScreenState extends State<InterestSearchScreen> {
                 const SizedBox(width: AppTheme.spacingSM),
                 Expanded(
                   child: Text(
-                    '${_selectedInterests.length}/2 interests selected',
+                    '${_selectedInterests.length}/3 interests selected',
                     style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontSize: 14,
