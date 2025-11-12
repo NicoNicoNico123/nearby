@@ -1,15 +1,24 @@
+import 'dart:developer' as developer;
 import '../generators/base_generator.dart';
 import '../data/mock_constants.dart';
 import '../data/mock_group_data.dart';
 import '../../../models/group_model.dart';
 import '../../../models/user_model.dart';
+import '../mock_user.dart';
 
 /// Group generator class for creating realistic mock groups
 class GroupGenerator extends BaseGenerator {
   GroupGenerator({super.random});
 
   /// Generate a single group with random properties
-  Group generateGroup(String groupId, List<User> availableUsers) {
+  Group generateGroup(
+    String groupId,
+    List<User> availableUsers, {
+    String? currentUserIdToExclude,
+    String? creatorIdToExclude,
+    User? forcedCreator,
+    List<User>? forcedMembers,
+  }) {
     final groupIndex = _extractGroupIndex(groupId);
     final name = randomItem(MockGroupData.groupNames);
     final description = randomItem(MockGroupData.groupDescriptions);
@@ -19,20 +28,39 @@ class GroupGenerator extends BaseGenerator {
     final mealType = randomItem(MockGroupData.mealTypes);
 
     // Calculate capacity and availability
-    final maxMembers = _calculateMaxMembers(groupIndex);
+    var maxMembers = _calculateMaxMembers(groupIndex);
+    final forcedMemberCount = (forcedMembers ?? [])
+        .where((member) => forcedCreator == null || member.id != forcedCreator.id)
+        .length;
+    if (forcedMemberCount > 0 && forcedMemberCount + 1 > maxMembers) {
+      maxMembers = forcedMemberCount + 1;
+    }
     final additionalMembersCount = _calculateAvailableMembers(groupIndex, maxMembers);
+    final requiredMembersCount = forcedMemberCount > additionalMembersCount
+        ? forcedMemberCount
+        : additionalMembersCount;
     final waitingListSize = randomInt(MockConstants.minWaitingListSize, MockConstants.maxWaitingListSize);
 
     // Select creator from available users (prefer premium/creator users)
-    final creator = _selectCreator(availableUsers);
-    final members = _selectMembers(availableUsers, additionalMembersCount, creator);
+    final creator = forcedCreator ?? _selectCreator(
+      availableUsers,
+      excludeUserId: creatorIdToExclude,
+    );
+    final members = _selectMembers(
+      availableUsers,
+      requiredMembersCount,
+      creator,
+      currentUserIdToExclude,
+      forcedMembers: forcedMembers,
+    );
+    final limitedMembers = members.take((maxMembers - 1).clamp(0, members.length)).toList();
 
     // Generate group-specific data
     final joinCost = randomInt(MockConstants.minJoinCost, MockConstants.maxJoinCost);
     final joinCostFees = (joinCost * 0.1).round(); // 10% fee
     final pointsPerMember = MockConstants.pointsPerMember;
     final hostAdditionalPoints = randomInt(0, 500);
-    final groupPot = members.length * pointsPerMember + joinCost + hostAdditionalPoints;
+    final groupPot = limitedMembers.length * pointsPerMember + joinCost + hostAdditionalPoints;
     final imageUrl = generateImageUrl(width: 400, height: 300, seed: groupId);
 
     // Generate meeting details
@@ -54,22 +82,34 @@ class GroupGenerator extends BaseGenerator {
     final genderLimits = _generateGenderLimits(maxMembers, allowedGenders);
     final allowedLanguages = _generateAllowedLanguages();
 
+    final memberIds = ([creator.id, ...limitedMembers.map((m) => m.id)]).take(maxMembers).toList();
+
+    // Debug: Log member selection
+    if (currentUserIdToExclude != null) {
+      developer.log('Group $groupId generation:', name: 'GroupGenerator');
+      developer.log('  Current user to exclude: $currentUserIdToExclude', name: 'GroupGenerator');
+      developer.log('  Creator: ${creator.id}', name: 'GroupGenerator');
+      developer.log('  Members: ${members.map((m) => m.id).toList()}', name: 'GroupGenerator');
+      developer.log('  Final memberIds: $memberIds', name: 'GroupGenerator');
+      developer.log('  Contains current user: ${memberIds.contains(currentUserIdToExclude)}', name: 'GroupGenerator');
+    }
+
     return Group(
       id: groupId,
       name: name,
       description: description,
-      subtitle: '$mealType • $location • ${(maxMembers - (members.length + 1)) > 0 ? "${maxMembers - (members.length + 1)} spots left" : "Full"}',
+      subtitle: '$mealType • $location • ${(maxMembers - (limitedMembers.length + 1)) > 0 ? "${maxMembers - (limitedMembers.length + 1)} spots left" : "Full"}',
       imageUrl: imageUrl,
       interests: [interest, mealType],
-      memberCount: (members.length + 1).clamp(1, maxMembers), // +1 for creator, ensure within limits
+      memberCount: (limitedMembers.length + 1).clamp(1, maxMembers), // +1 for creator, ensure within limits
       category: interest,
       creatorId: creator.id,
       creatorName: creator.name,
       venue: venue,
       mealTime: meetingTime,
       maxMembers: maxMembers,
-      memberIds: ([creator.id, ...members.map((m) => m.id)]).take(maxMembers).toList(),
-      waitingList: _generateWaitingList(availableUsers, waitingListSize, members + [creator]),
+      memberIds: memberIds,
+      waitingList: _generateWaitingList(availableUsers, waitingListSize, limitedMembers + [creator]),
       isActive: true,
       createdAt: createdAt,
       location: location,
@@ -93,12 +133,54 @@ class GroupGenerator extends BaseGenerator {
   List<Group> generateGroupBatch({
     required int count,
     required List<User> availableUsers,
+    String? currentUserIdToExclude,
+    MockUser? currentMockUser,
   }) {
     final groups = <Group>[];
+    final users = List<User>.from(availableUsers);
+    User? mockUser;
+    int forcedCreatorCount = 0;
+    int forcedMemberCount = 0;
+
+    if (currentMockUser != null) {
+      final user = currentMockUser.user;
+      mockUser = user;
+      if (!users.any((candidate) => candidate.id == user.id)) {
+        users.add(user);
+      }
+      forcedCreatorCount = currentMockUser.activity.groupsCreated.clamp(0, count);
+      forcedMemberCount = currentMockUser.activity.groupsJoined.clamp(0, count - forcedCreatorCount);
+    }
 
     for (int i = 0; i < count; i++) {
       final groupId = '${MockConstants.groupIdPrefix}_${i + 1}';
-      final group = generateGroup(groupId, availableUsers);
+      User? forcedCreator;
+      List<User>? forcedMembers;
+      String? memberExclusionId = currentUserIdToExclude;
+      String? creatorExclusionId = currentUserIdToExclude;
+
+      if (mockUser != null) {
+        if (i < forcedCreatorCount) {
+          forcedCreator = mockUser;
+          memberExclusionId = null;
+          creatorExclusionId = null;
+        } else if (i < forcedCreatorCount + forcedMemberCount) {
+          forcedMembers = [mockUser];
+          memberExclusionId = null;
+          creatorExclusionId = mockUser.id;
+        } else {
+          creatorExclusionId = mockUser.id;
+        }
+      }
+
+      final group = generateGroup(
+        groupId,
+        users,
+        currentUserIdToExclude: memberExclusionId,
+        creatorIdToExclude: creatorExclusionId,
+        forcedCreator: forcedCreator,
+        forcedMembers: forcedMembers,
+      );
       groups.add(group);
     }
 
@@ -194,36 +276,80 @@ class GroupGenerator extends BaseGenerator {
   }
 
   /// Select a creator from available users (prefer premium/creator)
-  User _selectCreator(List<User> availableUsers) {
-    if (availableUsers.isEmpty) {
+  User _selectCreator(List<User> availableUsers, {String? excludeUserId}) {
+    final filteredUsers = excludeUserId == null
+        ? availableUsers
+        : availableUsers.where((user) => user.id != excludeUserId).toList();
+
+    if (filteredUsers.isEmpty) {
       return _createFallbackUser();
     }
 
     // Filter for premium and creator users first
-    final priorityUsers = availableUsers.where((u) => u.isPremium || u.userType == 'creator').toList();
+    final priorityUsers = filteredUsers.where((u) => u.isPremium || u.userType == 'creator').toList();
 
     if (priorityUsers.isNotEmpty) {
       return randomItem(priorityUsers);
     }
 
     // Fall back to any user
-    return randomItem(availableUsers);
+    return randomItem(filteredUsers);
   }
 
   /// Select members for the group
-  List<User> _selectMembers(List<User> availableUsers, int count, User creator) {
+  List<User> _selectMembers(
+    List<User> availableUsers,
+    int count,
+    User creator,
+    String? currentUserIdToExclude, {
+    List<User>? forcedMembers,
+  }) {
     if (availableUsers.isEmpty || count <= 0) {
-      return [];
+      return (forcedMembers ?? [])
+          .where((member) => member.id != creator.id)
+          .toList();
     }
 
-    // Remove creator from available users
-    final otherUsers = availableUsers.where((u) => u.id != creator.id).toList();
+    final lookup = {for (final user in availableUsers) user.id: user};
+    final selected = <User>[];
+    final forcedIds = <String>{};
 
-    if (otherUsers.length <= count) {
-      return otherUsers;
+    for (final forced in forcedMembers ?? const <User>[]) {
+      if (forced.id == creator.id) {
+        continue;
+      }
+      if (forcedIds.add(forced.id)) {
+        selected.add(lookup[forced.id] ?? forced);
+      }
     }
 
-    return randomItems(otherUsers, count);
+    // Remove creator and current user (if specified and not the creator) from available users
+    final otherUsers = availableUsers.where((u) {
+      if (u.id == creator.id) {
+        return false;
+      }
+      if (forcedIds.contains(u.id)) {
+        return false;
+      }
+      if (currentUserIdToExclude != null && u.id == currentUserIdToExclude) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    final remainingSlots = count - selected.length;
+
+    if (remainingSlots <= 0) {
+      return selected.take(count).toList();
+    }
+
+    if (otherUsers.length <= remainingSlots) {
+      selected.addAll(otherUsers);
+      return selected;
+    }
+
+    selected.addAll(randomItems(otherUsers, remainingSlots));
+    return selected;
   }
 
   

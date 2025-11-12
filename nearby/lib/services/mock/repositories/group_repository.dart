@@ -1,5 +1,6 @@
 import '../generators/group_generator.dart';
 import '../storage/mock_storage.dart';
+import '../mock_user.dart';
 import '../../../models/group_model.dart';
 import '../../../models/user_model.dart';
 import 'dart:developer' as developer;
@@ -194,10 +195,14 @@ class GroupRepository {
   Future<void> generateGroups({
     required int count,
     required List<User> availableUsers,
+    String? currentUserIdToExclude,
+    MockUser? currentMockUser,
   }) async {
     final groups = _generator.generateGroupBatch(
       count: count,
       availableUsers: availableUsers,
+      currentUserIdToExclude: currentUserIdToExclude,
+      currentMockUser: currentMockUser,
     );
 
     await _storage.saveGroups(groups);

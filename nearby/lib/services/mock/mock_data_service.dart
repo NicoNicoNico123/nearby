@@ -88,9 +88,12 @@ class MockDataService {
 
     // Then generate groups using the created users
     final users = _userRepository.getAllUsers();
+    final currentUser = getCurrentUser();
     await _groupRepository.generateGroups(
       count: 15,
       availableUsers: users,
+      currentUserIdToExclude: currentUser.id,
+      currentMockUser: _currentMockUser,
     );
 
     developer.log('Generated initial mock data', name: 'MockDataService');
@@ -189,6 +192,7 @@ class MockDataService {
           ),
         );
         developer.log('Set preview user: $userType ($index)', name: 'MockDataService');
+        _regenerateGroups();
       }
     }
   }
@@ -231,6 +235,7 @@ class MockDataService {
         ),
       );
       developer.log('Set Normal User scenario: ${_currentMockUser!.user.name}', name: 'MockDataService');
+      _regenerateGroups();
     }
   }
 
@@ -252,6 +257,7 @@ class MockDataService {
         ),
       );
       developer.log('Set Premium User scenario: ${_currentMockUser!.user.name}', name: 'MockDataService');
+      _regenerateGroups();
     }
   }
 
@@ -271,6 +277,7 @@ class MockDataService {
       ),
     );
     developer.log('Set Guest User scenario', name: 'MockDataService');
+    _regenerateGroups();
   }
 
   /// Set preview godmode user
@@ -303,6 +310,7 @@ class MockDataService {
       ),
     );
     developer.log('Set Godmode User scenario: ${_currentMockUser!.user.name}', name: 'MockDataService');
+    _regenerateGroups();
   }
 
   /// Set preview custom user
@@ -346,6 +354,7 @@ class MockDataService {
       ),
     );
     developer.log('Set Custom User scenario: ${_currentMockUser!.user.name}', name: 'MockDataService');
+    _regenerateGroups();
   }
 
   /// Reset preview user
@@ -353,6 +362,7 @@ class MockDataService {
     _previewCurrentUser = null;
     _currentMockUser = null;
     developer.log('Reset preview user', name: 'MockDataService');
+    _regenerateGroups();
   }
 
   /// Get available user types for preview
@@ -463,9 +473,14 @@ class MockDataService {
   /// Regenerate all groups
   void _regenerateGroups() {
     final users = _userRepository.getAllUsers();
+    final currentUser = getCurrentUser();
+    final groupCount = _groupRepository.getAllGroups().length;
+    final targetCount = groupCount == 0 ? 15 : groupCount;
     _groupRepository.generateGroups(
-      count: 15,
+      count: targetCount,
       availableUsers: users,
+      currentUserIdToExclude: currentUser.id,
+      currentMockUser: _currentMockUser,
     );
     developer.log('Regenerated groups', name: 'MockDataService');
   }

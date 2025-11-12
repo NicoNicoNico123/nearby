@@ -53,7 +53,6 @@ class GroupCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Prevent overflow
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image section with overlay tags
@@ -70,7 +69,7 @@ class GroupCard extends StatelessWidget {
                   children: [
                     // Image with error handling
                     Image.network(
-                      group.imageUrl,
+                      group.imageUrl.isNotEmpty ? group.imageUrl : 'https://picsum.photos/400/300?random=fallback',
                       width: double.infinity,
                       height: double.infinity,
                       fit: BoxFit.cover,
@@ -141,11 +140,12 @@ class GroupCard extends StatelessWidget {
             // Content section
             Padding(
               padding: const EdgeInsets.all(AppTheme.spacingSM),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Text(
-                    group.name,
+                    group.name.isNotEmpty ? group.name : 'Group Name',
                     style: const TextStyle(
                       color: AppTheme.textPrimary,
                       fontSize: 16,
@@ -154,7 +154,7 @@ class GroupCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppTheme.spacingXS),
                   Text(
-                    group.description,
+                    group.description.isNotEmpty ? group.description : 'No description available',
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 14,
@@ -231,7 +231,7 @@ class GroupCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            group.venue,
+                            group.venue.isNotEmpty ? group.venue : 'Venue TBD',
                             style: const TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 13,
@@ -320,6 +320,7 @@ class GroupCard extends StatelessWidget {
                     ],
                   ),
                 ],
+                ),
               ),
             ),
           ],
@@ -331,73 +332,84 @@ class GroupCard extends StatelessWidget {
   Widget _buildVerticalCard(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min, // Use minimum size to prevent overflow
       children: [
         // Image section
-        Container(
-          width: double.infinity,
-          height: 164, // Adjusted for grid layout
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: AppTheme.surfaceColor,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              group.imageUrl,
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: AppTheme.surfaceColor,
-                  child: const Icon(
-                    Icons.group,
-                    size: 40,
-                    color: AppTheme.textTertiary,
-                  ),
-                );
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                        : null,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                  ),
-                );
-              },
+        Flexible(
+          flex: 3, // Give image more space but make it flexible
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: AppTheme.surfaceColor,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                group.imageUrl.isNotEmpty ? group.imageUrl : 'https://picsum.photos/400/300?random=fallback',
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: AppTheme.surfaceColor,
+                    child: const Icon(
+                      Icons.group,
+                      size: 40,
+                      color: AppTheme.textTertiary,
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                          : null,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
         const SizedBox(height: 8),
         // Text content
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXS),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                group.name,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+        Flexible(
+          flex: 1, // Give text content some flexible space
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXS),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  group.name.isNotEmpty ? group.name : 'Group Name',
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2, // Limit lines to prevent overflow
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(height: AppTheme.spacingXS),
-              Text(
-                group.subtitle,
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal,
+                const SizedBox(height: AppTheme.spacingXS),
+                Text(
+                  group.subtitle.isNotEmpty ? group.subtitle : 'Group Activity',
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  maxLines: 2, // Limit lines to prevent overflow
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],

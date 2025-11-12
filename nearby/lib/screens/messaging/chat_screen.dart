@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/message_model.dart';
 import '../../models/user_model.dart';
+import '../../models/group_model.dart';
 import '../../services/messaging_service.dart';
+import '../../services/mock/mock_data_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/user_avatar.dart';
 import '../../widgets/member_profile_popup.dart';
@@ -25,15 +27,20 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final MessagingService _messagingService = MessagingService();
+  final MockDataService _dataService = MockDataService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   List<Message> _messages = [];
   bool _isLoading = true;
   bool _isTyping = false;
 
+  // Group data for synchronization
+  Group? _group;
+
   @override
   void initState() {
     super.initState();
+    _loadGroupData();
     _loadMessages();
     _markAsRead();
   }
@@ -57,6 +64,13 @@ class _ChatScreenState extends State<ChatScreen> {
           SnackBar(content: Text('Error loading messages')),
         );
       }
+    }
+  }
+
+  void _loadGroupData() {
+    if (widget.isGroup) {
+      _group = _dataService.getGroupById(widget.conversationId);
+      Logger.info('Loaded group data for chat: ${_group?.name ?? "Not found"}');
     }
   }
 
@@ -149,7 +163,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     ],
                   ),
                   Text(
-                    '${_messages.length} messages',
+                    _group != null
+                        ? '${_group!.memberCount}/${_group!.maxMembers} members • ${_messages.length} messages'
+                        : '${_messages.length} messages',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.textSecondary,
                       fontSize: 12,
@@ -626,14 +642,24 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _navigateToGroupInfo() {
     if (widget.isGroup) {
-      // Navigate to group info screen
-      Navigator.pushNamed(
-        context,
-        '/group_info',
-        arguments: {
-          'groupId': widget.conversationId,
-        },
-      );
+      // Navigate to group info screen with consistent data
+      if (_group != null) {
+        // Pass actual group object for consistency
+        Navigator.pushNamed(
+          context,
+          '/group_info',
+          arguments: {'group': _group},
+        );
+      } else {
+        // Fallback to ID-based lookup
+        Navigator.pushNamed(
+          context,
+          '/group_info',
+          arguments: {
+            'groupId': widget.conversationId,
+          },
+        );
+      }
     } else {
       // For direct messages (not used anymore, but keeping for completeness)
       _showMemberProfile(widget.conversationName);

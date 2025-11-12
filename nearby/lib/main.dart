@@ -7,6 +7,7 @@ import 'screens/create_group/create_group_screen.dart';
 import 'screens/feed/filter_screen.dart';
 import 'screens/feed/interest_search_screen.dart';
 import 'screens/feed/language_search_screen.dart';
+import 'models/group_model.dart';
 import 'services/mock/mock_data_service.dart';
 import 'utils/navigation_service.dart';
 import 'utils/logger.dart';
@@ -76,8 +77,8 @@ class NearbyApp extends StatelessWidget {
         if (args != null) {
           return MaterialPageRoute(
             builder: (context) => ChatScreen(
-              conversationId: args['conversationId'],
-              conversationName: args['conversationName'],
+              conversationId: args['conversationId']?.toString() ?? '',
+              conversationName: args['conversationName']?.toString() ?? 'Chat',
               isGroup: args['isGroup'] ?? false,
             ),
           );
@@ -86,16 +87,24 @@ class NearbyApp extends StatelessWidget {
 
       case '/group_info':
         final args = settings.arguments as Map<String, dynamic>?;
+        Group? group;
+
         if (args != null) {
-          final groupId = args['groupId'] as String?;
-          if (groupId != null) {
-            final group = mockDataService.getGroupById(groupId);
-            return MaterialPageRoute(
-              builder: (context) => GroupInfoScreen(group: group),
-            );
+          // First try to get the group object directly (new approach)
+          group = args['group'] as Group?;
+
+          // Fallback to old approach with groupId
+          if (group == null) {
+            final groupId = args['groupId'] as String?;
+            if (groupId != null) {
+              group = mockDataService.getGroupById(groupId);
+            }
           }
         }
-        return null;
+
+        return MaterialPageRoute(
+          builder: (context) => GroupInfoScreen(group: group),
+        );
 
       case '/filter':
         return MaterialPageRoute(builder: (context) => const FilterScreen());

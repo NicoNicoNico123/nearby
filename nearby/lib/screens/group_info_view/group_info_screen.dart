@@ -33,27 +33,22 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   final _locationController = TextEditingController();
   final DateTime _mealTime = DateTime.now().add(const Duration(hours: 3));
   final List<String> _selectedInterests = [];
-    int _maxMembers = 10;
+  int _maxMembers = 10;
 
-  // Current user ID (in real app, this would come from auth service)
-  static const String _currentUserId = 'current_user';
+  // Get actual current user from mock data service
+  String get _currentUserId => _dataService.getCurrentUser().id;
 
-  // Helper method to get actual member count including creator, current user, and all members
+  // Helper method to get actual member count - aligned with feed data calculation
   int get _actualMemberCount {
-    final Set<String> allMembers = <String>{};
+    // Use the group's memberCount from the mock data service for consistency
+    // This ensures alignment with feed screen data
+    Logger.debug('🏷️ Member Count Calc:');
+    Logger.debug('  Group memberCount: ${_group.memberCount}');
+    Logger.debug('  Member IDs length: ${_group.memberIds.length}');
+    Logger.debug('  Creator ID: ${_group.creatorId}');
+    Logger.debug('  Using group.memberCount for feed consistency');
 
-    // Always include the creator
-    allMembers.add(_group.creatorId);
-
-    // Include all member IDs from the list
-    allMembers.addAll(_group.memberIds);
-
-    // Ensure current user is counted if they're different from creator and not already in memberIds
-    if (_currentUserId != _group.creatorId && !allMembers.contains(_currentUserId)) {
-      allMembers.add(_currentUserId);
-    }
-
-    return allMembers.length;
+    return _group.memberCount;
   }
 
   // Helper method to get actual available spots
@@ -62,13 +57,65 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   @override
   void initState() {
     super.initState();
+
     if (widget.group != null) {
+      // Constructor parameter takes priority
       _group = widget.group!;
       _isCreatingNew = false;
     } else {
+      // Will be initialized in didChangeDependencies when context is ready
       _isCreatingNew = true;
-      _initializeNewGroup();
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Now context is ready, check if group was passed through navigation arguments
+    if (widget.group == null) {
+      final groupArg =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      Group? passedGroup = groupArg?['group'] as Group?;
+
+      if (passedGroup != null) {
+        // Use group from navigation arguments
+        setState(() {
+          _group = passedGroup;
+          _isCreatingNew = false;
+        });
+
+        // Debug: Check membership data
+        _debugMembershipStatus();
+      } else {
+        // Create new group
+        setState(() {
+          _isCreatingNew = true;
+        });
+        _initializeNewGroup();
+        _debugMembershipStatus();
+      }
+    } else {
+      // Already initialized in initState with constructor parameter
+      _debugMembershipStatus();
+    }
+  }
+
+  void _debugMembershipStatus() {
+    final currentUser = _dataService.getCurrentUser();
+    Logger.debug('=== 🔍 MEMBERSHIP DEBUG ===');
+    Logger.debug('Group ID: ${_group.id}');
+    Logger.debug('Group Name: ${_group.name}');
+    Logger.debug('Current User: ${currentUser.name} (${currentUser.id})');
+    Logger.debug('Group Creator: ${_group.creatorName} (${_group.creatorId})');
+    Logger.debug('Member IDs in group: ${_group.memberIds}');
+    Logger.debug('Waiting List: ${_group.waitingList}');
+    Logger.debug('Is Creator: ${_group.isCreator(_currentUserId)}');
+    Logger.debug('Is Member: ${_group.isMember(_currentUserId)}');
+    Logger.debug(
+      'Is in Waiting List: ${_group.isInWaitingList(_currentUserId)}',
+    );
+    Logger.debug('==========================');
   }
 
   void _initializeNewGroup() {
@@ -79,13 +126,13 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       subtitle: 'Creating new dining group',
       imageUrl: 'https://picsum.photos/400/300?random=new',
       interests: [],
-      memberCount: 1,
+      memberCount: 1, // Creator counts as member
       creatorId: _currentUserId,
       creatorName: 'You',
       venue: '',
       mealTime: _mealTime,
       maxMembers: _maxMembers,
-      memberIds: [_currentUserId],
+      memberIds: [], // Don't add creator initially - will be handled by group creation
       createdAt: DateTime.now(),
       location: '',
     );
@@ -108,7 +155,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         backgroundColor: AppTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          _isCreatingNew ? 'Create Group' : _isEditMode ? 'Edit Group' : 'Group Details',
+          _isCreatingNew
+              ? 'Create Group'
+              : _isEditMode
+              ? 'Edit Group'
+              : 'Group Details',
           style: const TextStyle(
             color: AppTheme.textPrimary,
             fontWeight: FontWeight.bold,
@@ -229,7 +280,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           maxLines: 3,
         ),
         const SizedBox(height: AppTheme.spacingMD),
-        _buildFormField('Venue', _venueController, 'Restaurant or location (50 pts)'),
+        _buildFormField(
+          'Venue',
+          _venueController,
+          'Restaurant or location (50 pts)',
+        ),
         const SizedBox(height: AppTheme.spacingMD),
         _buildFormField('Location', _locationController, 'Address or area'),
         const SizedBox(height: AppTheme.spacingMD),
@@ -352,7 +407,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     );
   }
 
-  
   Widget _buildMaxMembersSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,7 +641,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               'Members',
               '$_actualMemberCount/${_group.maxMembers}',
             ),
-                        const SizedBox(height: AppTheme.spacingMD),
+            const SizedBox(height: AppTheme.spacingMD),
             if (_group.interests.isNotEmpty) ...[
               const Text(
                 'Interests',
@@ -629,6 +683,13 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   Widget _buildMembershipStatus() {
+    Logger.debug('🎯 Building membership status for user: $_currentUserId');
+    Logger.debug('  Is Creator: ${_group.isCreator(_currentUserId)}');
+    Logger.debug('  Is Member: ${_group.isMember(_currentUserId)}');
+    Logger.debug(
+      '  Is in Waiting List: ${_group.isInWaitingList(_currentUserId)}',
+    );
+
     if (_group.isCreator(_currentUserId)) {
       return Card(
         color: AppTheme.primaryColor.withValues(alpha: 0.1),
@@ -903,6 +964,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   Widget _buildMembersSection() {
     final currentUser = _dataService.getCurrentUser();
+    final bool isCurrentUserCreator = _group.isCreator(_currentUserId);
+    final bool isCurrentUserMember = _group.isMember(_currentUserId);
 
     return Card(
       child: Padding(
@@ -956,7 +1019,13 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                 ),
                               ),
                               const SizedBox(width: AppTheme.spacingXS),
-                              _buildGenderIcon(['Male', 'Female', 'LGBTQ+'][_group.creatorId.hashCode % 3]),
+                              _buildGenderIcon(
+                                [
+                                  'Male',
+                                  'Female',
+                                  'LGBTQ+',
+                                ][_group.creatorId.hashCode % 3],
+                              ),
                             ],
                           ),
                           const Text(
@@ -992,60 +1061,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               ),
             ),
             // Add current user if not creator and not a member
-            if (!_group.isCreator(_currentUserId) &&
-                !_group.isMember(_currentUserId)) ...[
-              const SizedBox(height: AppTheme.spacingMD),
-              const Divider(),
-              const SizedBox(height: AppTheme.spacingMD),
-              GestureDetector(
-                onTap: () {
-                  _showMemberProfile(currentUser);
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      UserAvatar(
-                        name: currentUser.name,
-                        imageUrl: currentUser.imageUrl,
-                        size: 40,
-                      ),
-                      const SizedBox(width: AppTheme.spacingMD),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  currentUser.name,
-                                  style: const TextStyle(
-                                    color: AppTheme.textPrimary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: AppTheme.spacingXS),
-                                _buildGenderIcon(currentUser.gender),
-                              ],
-                            ),
-                            const Text(
-                              'You',
-                              style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
             // Add current user if they are a member (but not creator)
-            if (!_group.isCreator(_currentUserId) && _group.isMember(_currentUserId)) ...[
+            if (!isCurrentUserCreator && isCurrentUserMember) ...[
               const SizedBox(height: AppTheme.spacingMD),
               const Divider(),
               const SizedBox(height: AppTheme.spacingMD),
@@ -1098,7 +1115,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             ],
             // Show other members (excluding creator and current user)
             if (_group.memberIds.length > 2 ||
-                (_group.memberIds.length > 1 && !_group.isMember(_currentUserId))) ...[
+                (_group.memberIds.length > 1 &&
+                    !_group.isMember(_currentUserId))) ...[
               const SizedBox(height: AppTheme.spacingMD),
               const Divider(),
               const SizedBox(height: AppTheme.spacingSM),
@@ -1307,7 +1325,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     }
   }
 
-  
   void _selectDateTime() async {
     final date = await showDatePicker(
       context: context,
@@ -1357,23 +1374,37 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       _isLoading = true;
     });
 
-    // Simulate group creation
+    // Simulate group creation - align with mock data service pattern
     await Future.delayed(const Duration(seconds: 1));
 
+    // Generate group data consistent with mock data service
+    final newGroupData = _group.copyWith(
+      name: _nameController.text.trim(),
+      description: _descriptionController.text.trim(),
+      venue: _venueController.text.trim(),
+      location: _locationController.text.trim(),
+      interests: List.from(_selectedInterests),
+      maxMembers: _maxMembers,
+      // Follow mock data service pattern: memberIds includes creator
+      memberIds: [_currentUserId],
+      memberCount: 1, // Creator counts as member - aligned with feed data
+      // Generate consistent additional data
+      groupPot: 50, // Base pot for new groups
+      joinCost: 10, // Standard join cost
+      joinCostFees: 1, // 10% fee
+      ageRangeMin: 18,
+      ageRangeMax: 100,
+      allowedGenders: ['Male', 'Female', 'LGBTQ+'],
+      allowedLanguages: ['English'],
+    );
+
     setState(() {
-      _group = _group.copyWith(
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        venue: _venueController.text.trim(),
-        location: _locationController.text.trim(),
-        interests: List.from(_selectedInterests),
-        maxMembers: _maxMembers,
-      );
+      _group = newGroupData;
       _isLoading = false;
       _isCreatingNew = false;
     });
 
-    Logger.info('Created group: ${_group.name}');
+    Logger.info('Created group: ${_group.name} with memberCount: ${_group.memberCount}');
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1472,7 +1503,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     }
   }
 
-  void _showEditCostPopup(Map<String, String> changedFields, int totalCost) async {
+  void _showEditCostPopup(
+    Map<String, String> changedFields,
+    int totalCost,
+  ) async {
     // Mock user points balance (in real app, this would come from user service)
     const int userPointsBalance = 250;
 
@@ -1571,24 +1605,26 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
-              ...changedFields.entries.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  children: [
-                    Text(
-                      '${entry.key}:',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        entry.value,
-                        style: const TextStyle(color: AppTheme.primaryColor),
+              ...changedFields.entries.map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${entry.key}:',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          entry.value,
+                          style: const TextStyle(color: AppTheme.primaryColor),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              )),
+              ),
             ],
             const SizedBox(height: 16),
             const Text(
@@ -1620,9 +1656,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 Navigator.pop(context, false);
                 _showInsufficientPointsDialog();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
               child: const Text('Insufficient Points'),
             ),
         ],
@@ -1707,7 +1741,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       _isEditMode = false;
     });
 
-    Logger.info('Applied paid edits to group: ${_group.name} (cost: $cost points)');
+    Logger.info(
+      'Applied paid edits to group: ${_group.name} (cost: $cost points)',
+    );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1724,13 +1760,42 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       context,
       '/chat',
       arguments: {
-        'groupId': _group.id,
-        'groupName': _group.name,
+        'conversationId': _group.id,
+        'conversationName': _group.name,
+        'isGroup': true,
       },
     );
   }
 
   void _joinGroup() async {
+    // Check if user is already a member
+    if (_group.isMember(_currentUserId)) {
+      Logger.warning('User $_currentUserId is already a member of group ${_group.id}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You are already a member of this group'),
+            backgroundColor: AppTheme.textSecondary,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Check if group is full
+    if (_group.isFull) {
+      Logger.warning('Group ${_group.id} is full, cannot join');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('This group is full. Join the waiting list instead.'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -1738,9 +1803,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
+      // Maintain consistency between memberCount and memberIds for feed alignment
+      final updatedMemberIds = [..._group.memberIds, _currentUserId];
       _group = _group.copyWith(
-        memberCount: _group.memberCount + 1,
-        memberIds: [..._group.memberIds, _currentUserId],
+        memberCount: updatedMemberIds.length, // Keep count consistent with actual members
+        memberIds: updatedMemberIds,
       );
       _isLoading = false;
     });
@@ -1859,6 +1926,34 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   void _leaveGroup() async {
+    // Check if user is actually a member
+    if (!_group.isMember(_currentUserId)) {
+      Logger.warning('User $_currentUserId is not a member of group ${_group.id}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You are not a member of this group'),
+            backgroundColor: AppTheme.textSecondary,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Check if user is the creator (creators shouldn't be able to leave their own groups)
+    if (_group.isCreator(_currentUserId)) {
+      Logger.warning('Creator $_currentUserId cannot leave their own group ${_group.id}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('As the creator, you cannot leave your own group. Cancel the group instead.'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -1866,11 +1961,13 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
+      // Maintain consistency between memberCount and memberIds for feed alignment
+      final updatedMemberIds = _group.memberIds
+          .where((id) => id != _currentUserId)
+          .toList();
       _group = _group.copyWith(
-        memberCount: _group.memberCount - 1,
-        memberIds: _group.memberIds
-            .where((id) => id != _currentUserId)
-            .toList(),
+        memberCount: updatedMemberIds.length, // Keep count consistent with actual members
+        memberIds: updatedMemberIds,
       );
       _isLoading = false;
     });
@@ -1887,6 +1984,34 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   void _joinWaitingList() async {
+    // Check if user is already a member
+    if (_group.isMember(_currentUserId)) {
+      Logger.warning('User $_currentUserId is already a member of group ${_group.id}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You are already a member of this group'),
+            backgroundColor: AppTheme.textSecondary,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Check if user is already on waiting list
+    if (_group.isInWaitingList(_currentUserId)) {
+      Logger.warning('User $_currentUserId is already on waiting list for group ${_group.id}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You are already on the waiting list for this group'),
+            backgroundColor: AppTheme.textSecondary,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -1914,6 +2039,20 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   void _leaveWaitingList() async {
+    // Check if user is actually on the waiting list
+    if (!_group.isInWaitingList(_currentUserId)) {
+      Logger.warning('User $_currentUserId is not on waiting list for group ${_group.id}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You are not on the waiting list for this group'),
+            backgroundColor: AppTheme.textSecondary,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -2071,7 +2210,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          kIsWeb ? 'Will open in your web browser' : 'Will open in your default map app',
+                          kIsWeb
+                              ? 'Will open in your web browser'
+                              : 'Will open in your default map app',
                           style: const TextStyle(
                             color: AppTheme.primaryColor,
                             fontSize: 12,
@@ -2161,7 +2302,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.spacingLG),
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: AppTheme.dividerColor)),
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.dividerColor),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -2177,7 +2320,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                      icon: const Icon(
+                        Icons.close,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -2215,10 +2361,13 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                             ],
                             _buildFullMemberItem(
                               user: member,
-                              role: member.id == _currentUserId ? 'You' : 'Group Member',
+                              role: member.id == _currentUserId
+                                  ? 'You'
+                                  : 'Group Member',
                               roleColor: member.id == _currentUserId
-                                  ? AppTheme.textTertiary
+                                  ? AppTheme.primaryColor
                                   : AppTheme.textSecondary,
+                              isCurrentUser: member.id == _currentUserId,
                             ),
                           ],
                         );
@@ -2244,11 +2393,16 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       return existingCreator.copyWith(
         name: _group.creatorName, // Use the group's creator name
         bio: existingCreator.bio, // Use real bio from mock service
-        intents: ['dining', 'friendship'], // Ensure consistent intents for this screen
+        intents: [
+          'dining',
+          'friendship',
+        ], // Ensure consistent intents for this screen
       );
     } else {
       // Create a fallback creator user if not found in mock service
-      Logger.warning('Creator with ID ${_group.creatorId} not found in mock data service, creating fallback user');
+      Logger.warning(
+        'Creator with ID ${_group.creatorId} not found in mock data service, creating fallback user',
+      );
       return User(
         id: _group.creatorId,
         name: _group.creatorName,
@@ -2278,16 +2432,23 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         name: isCurrentUser ? 'You' : existingUser.name,
         username: isCurrentUser ? 'current_user' : existingUser.username,
         bio: isCurrentUser ? 'Your bio here' : existingUser.bio,
-        intents: ['dining', 'friendship'], // Ensure consistent intents for this screen
+        intents: [
+          'dining',
+          'friendship',
+        ], // Ensure consistent intents for this screen
       );
     } else {
       // Create a fallback user if not found in mock service
-      Logger.warning('User with ID $memberId not found in mock data service, creating fallback user');
+      Logger.warning(
+        'User with ID $memberId not found in mock data service, creating fallback user',
+      );
       return User(
         id: memberId,
         name: isCurrentUser ? 'You' : 'User $memberId',
         username: memberId,
-        bio: isCurrentUser ? 'Your bio here' : 'Dining enthusiast and social explorer',
+        bio: isCurrentUser
+            ? 'Your bio here'
+            : 'Dining enthusiast and social explorer',
         age: 22 + (memberId.hashCode.abs() % 25), // Random age 22-47
         gender: ['Male', 'Female', 'LGBTQ+'][memberId.hashCode.abs() % 3],
         interests: ['Dining', 'Social', 'Food'],
@@ -2304,10 +2465,15 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   // Generate all other members using mock data service
   List<User> _generateAllMembers() {
-    final memberIds = _group.memberIds.where((id) => id != _group.creatorId).toList();
+    final memberIds = _group.memberIds
+        .where((id) => id != _group.creatorId)
+        .toList();
 
     return memberIds.map((memberId) {
-      return _generateUserData(memberId, isCurrentUser: memberId == _currentUserId);
+      return _generateUserData(
+        memberId,
+        isCurrentUser: memberId == _currentUserId,
+      );
     }).toList();
   }
 
@@ -2316,22 +2482,25 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     required User user,
     required String role,
     required Color roleColor,
+    bool isCurrentUser = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMD),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isCurrentUser
+            ? AppTheme.primaryColor.withValues(alpha: 0.1)
+            : AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.dividerColor),
+        border: Border.all(
+          color: isCurrentUser
+              ? AppTheme.primaryColor.withValues(alpha: 0.3)
+              : AppTheme.dividerColor,
+        ),
       ),
       child: Row(
         children: [
           // Avatar
-          UserAvatar(
-            name: user.name,
-            imageUrl: user.imageUrl,
-            size: 50,
-          ),
+          UserAvatar(name: user.name, imageUrl: user.imageUrl, size: 50),
           const SizedBox(width: AppTheme.spacingMD),
 
           // User info
@@ -2355,6 +2524,27 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                     ),
                     const SizedBox(width: AppTheme.spacingXS),
                     _buildGenderIcon(user.gender),
+                    if (isCurrentUser) ...[
+                      const SizedBox(width: AppTheme.spacingXS),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingSM,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'You',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: AppTheme.spacingXS),
@@ -2493,8 +2683,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     }).toList();
   }
 
-  
-// Helper method to build gender icon
+  // Helper method to build gender icon
   Widget _buildGenderIcon(String gender) {
     switch (gender.toLowerCase()) {
       case 'male':
@@ -2504,11 +2693,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             color: Colors.blue.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: const Icon(
-            Icons.male,
-            size: 16,
-            color: Colors.blue,
-          ),
+          child: const Icon(Icons.male, size: 16, color: Colors.blue),
         );
       case 'female':
         return Container(
@@ -2517,18 +2702,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             color: Colors.pink.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: const Icon(
-            Icons.female,
-            size: 16,
-            color: Colors.pink,
-          ),
+          child: const Icon(Icons.female, size: 16, color: Colors.pink),
         );
       case 'lgbtq+':
         return Container(
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
           child: CustomPaint(
             size: const Size(16, 12),
             painter: RainbowFlagPainter(),
@@ -2541,11 +2720,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             color: Colors.grey.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: const Icon(
-            Icons.person,
-            size: 16,
-            color: Colors.grey,
-          ),
+          child: const Icon(Icons.person, size: 16, color: Colors.grey),
         );
     }
   }

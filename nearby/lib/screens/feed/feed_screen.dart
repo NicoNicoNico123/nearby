@@ -27,6 +27,9 @@ class _FeedScreenState extends State<FeedScreen>
   final int _pageSize = 6;
   final TextEditingController _extraPotsController = TextEditingController();
 
+  // Get current user for membership checks
+  String get _currentUserId => _dataService.getCurrentUser().id;
+
   @override
   bool get wantKeepAlive => true;
 
@@ -55,7 +58,9 @@ class _FeedScreenState extends State<FeedScreen>
       // Log sample group data for verification
       if (groups.isNotEmpty) {
         final sampleGroup = groups.first;
-        Logger.info('Sample group: ${sampleGroup.name} - ${sampleGroup.memberCount}/${sampleGroup.maxMembers} members');
+        Logger.info(
+          'Sample group: ${sampleGroup.name} - ${sampleGroup.memberCount}/${sampleGroup.maxMembers} members',
+        );
       }
     } catch (e) {
       Logger.error('Failed to initialize MockDataService', error: e);
@@ -123,7 +128,9 @@ class _FeedScreenState extends State<FeedScreen>
 
       // Debug: Log member counts for verification
       for (final group in newGroups) {
-        Logger.debug('Group ${group.name}: ${group.memberCount}/${group.maxMembers} members (${group.availableSpots} available)');
+        Logger.debug(
+          'Group ${group.name}: ${group.memberCount}/${group.maxMembers} members (${group.availableSpots} available)',
+        );
       }
     } catch (e) {
       Logger.error('Failed to load more groups', error: e);
@@ -383,14 +390,28 @@ class _FeedScreenState extends State<FeedScreen>
 
   int _getActiveFilterCount(Map<String, dynamic> filters) {
     int count = 0;
-    if (filters['interests'] != null && (filters['interests'] as List).isNotEmpty) count++;
-    if (filters['intent'] != null && filters['intent'].isNotEmpty) count++;
-    if (filters['maxDistance'] != null && filters['maxDistance'] != 25.0) count++;
-    if (filters['minAge'] != null && filters['maxAge'] != null) {
-      if (filters['minAge'] != 18.0 || filters['maxAge'] != 35.0) count++;
+    if (filters['interests'] != null &&
+        (filters['interests'] as List).isNotEmpty) {
+      count++;
     }
-    if (filters['gender'] != null && filters['gender'] != 'All') count++;
-    if (filters['languages'] != null && (filters['languages'] as List).isNotEmpty) count++;
+    if (filters['intent'] != null && filters['intent'].isNotEmpty) {
+      count++;
+    }
+    if (filters['maxDistance'] != null && filters['maxDistance'] != 25.0) {
+      count++;
+    }
+    if (filters['minAge'] != null && filters['maxAge'] != null) {
+      if (filters['minAge'] != 18.0 || filters['maxAge'] != 35.0) {
+        count++;
+      }
+    }
+    if (filters['gender'] != null && filters['gender'] != 'All') {
+      count++;
+    }
+    if (filters['languages'] != null &&
+        (filters['languages'] as List).isNotEmpty) {
+      count++;
+    }
     return count;
   }
 
@@ -411,7 +432,9 @@ class _FeedScreenState extends State<FeedScreen>
         maxDistance: filters['maxDistance'] as double?,
         minAge: filters['minAge'] as double?,
         maxAge: filters['maxAge'] as double?,
-        genders: filters['genders'] as List<String>?, // Changed from gender to genders
+        genders:
+            filters['genders']
+                as List<String>?, // Changed from gender to genders
         languages: filters['languages'] as List<String>?,
       );
 
@@ -435,7 +458,9 @@ class _FeedScreenState extends State<FeedScreen>
         _hasMore = endIndex < allGroups.length;
       });
 
-      Logger.info('Loaded ${newGroups.length} filtered groups (page $_currentPage)');
+      Logger.info(
+        'Loaded ${newGroups.length} filtered groups (page $_currentPage)',
+      );
     } catch (e) {
       Logger.error('Failed to load filtered groups', error: e);
       setState(() {
@@ -444,7 +469,6 @@ class _FeedScreenState extends State<FeedScreen>
     }
   }
 
-  
   Widget _buildGroupCard(Group group) {
     return InkWell(
       onTap: () => _showGroupDetails(group),
@@ -595,16 +619,24 @@ class _FeedScreenState extends State<FeedScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               // Gender Icons
-                              ...group.allowedGenders.take(3).map((gender) =>
-                                Padding(
-                                  padding: const EdgeInsets.only(right: AppTheme.spacingXS),
-                                  child: _buildGenderIcon(gender),
-                                ),
-                              ),
+                              ...group.allowedGenders
+                                  .take(3)
+                                  .map(
+                                    (gender) => Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: AppTheme.spacingXS,
+                                      ),
+                                      child: _buildGenderIcon(gender),
+                                    ),
+                                  ),
                               // Age Range Display
-                              if (group.ageRangeMin > 18 || group.ageRangeMax < 100) ...[
+                              if (group.ageRangeMin > 18 ||
+                                  group.ageRangeMax < 100) ...[
                                 const SizedBox(width: AppTheme.spacingXS),
-                                _buildAgeRangeDisplay(group.ageRangeMin, group.ageRangeMax),
+                                _buildAgeRangeDisplay(
+                                  group.ageRangeMin,
+                                  group.ageRangeMax,
+                                ),
                               ],
                             ],
                           ),
@@ -756,10 +788,42 @@ class _FeedScreenState extends State<FeedScreen>
                     ],
                   ),
                   const SizedBox(height: AppTheme.spacingSM),
-                  // Action buttons - Different based on availability
+                  // Action buttons - Different based on availability and membership
                   Row(
                     children: [
-                      if (group.availableSpots > 0) ...[
+                      if (group.isMember(_currentUserId)) ...[
+                        // User is already a member - Show chat button
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _openGroupChat(group),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text('Open Chat'),
+                          ),
+                        ),
+                      ] else if (group.isCreator(_currentUserId)) ...[
+                        // User is the creator - Show manage button
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _manageGroup(group),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text('Manage Group'),
+                          ),
+                        ),
+                      ] else if (group.availableSpots > 0) ...[
                         // Groups with availability - Show Join and Superlike buttons
                         Expanded(
                           child: InkWell(
@@ -772,7 +836,9 @@ class _FeedScreenState extends State<FeedScreen>
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -805,12 +871,16 @@ class _FeedScreenState extends State<FeedScreen>
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF4AC7F0).withValues(alpha: 0.4),
+                                    color: const Color(
+                                      0xFF4AC7F0,
+                                    ).withValues(alpha: 0.4),
                                     blurRadius: 12,
                                     offset: const Offset(0, 6),
                                   ),
                                   BoxShadow(
-                                    color: const Color(0xFF00D4FF).withValues(alpha: 0.3),
+                                    color: const Color(
+                                      0xFF00D4FF,
+                                    ).withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 3),
                                   ),
@@ -900,12 +970,8 @@ class _FeedScreenState extends State<FeedScreen>
 
   void _showGroupDetails(Group group) {
     Logger.info('Showing details for group: ${group.name}');
-    // Navigate to group details screen
-    Navigator.pushNamed(
-      context,
-      '/group_info',
-      arguments: {'groupId': group.id},
-    );
+    // Navigate to group details screen with the complete group object
+    Navigator.pushNamed(context, '/group_info', arguments: {'group': group});
   }
 
   void _showVenueLocationMap(Group group) async {
@@ -979,7 +1045,9 @@ class _FeedScreenState extends State<FeedScreen>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          kIsWeb ? 'Will open in your web browser' : 'Will open in your default map app',
+                          kIsWeb
+                              ? 'Will open in your web browser'
+                              : 'Will open in your default map app',
                           style: const TextStyle(
                             color: AppTheme.primaryColor,
                             fontSize: 12,
@@ -1069,6 +1137,28 @@ class _FeedScreenState extends State<FeedScreen>
         backgroundColor: Colors.orange,
         duration: const Duration(seconds: 2),
       ),
+    );
+  }
+
+  void _openGroupChat(Group group) {
+    Logger.info('Opening chat for group: ${group.name}');
+    Navigator.pushNamed(
+      context,
+      '/chat',
+      arguments: {
+        'conversationId': group.id,
+        'conversationName': group.name,
+        'isGroup': true,
+      },
+    );
+  }
+
+  void _manageGroup(Group group) {
+    Logger.info('Managing group: ${group.name}');
+    Navigator.pushNamed(
+      context,
+      '/group_info',
+      arguments: {'group': group}
     );
   }
 
@@ -1184,11 +1274,7 @@ class _FeedScreenState extends State<FeedScreen>
                         color: Colors.amber,
                         borderRadius: BorderRadius.circular(2),
                       ),
-                      child: Icon(
-                        Icons.savings,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+                      child: Icon(Icons.savings, color: Colors.white, size: 16),
                     ),
                     const SizedBox(width: 8),
                     const Text(
@@ -1231,7 +1317,9 @@ class _FeedScreenState extends State<FeedScreen>
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        group.memberCount < group.maxMembers ? Icons.check_circle : Icons.person_outline,
+                        group.memberCount < group.maxMembers
+                            ? Icons.check_circle
+                            : Icons.person_outline,
                         color: Colors.white,
                         size: 16,
                       ),
@@ -1248,9 +1336,13 @@ class _FeedScreenState extends State<FeedScreen>
                           ),
                         ),
                         Text(
-                          group.memberCount < group.maxMembers ? 'Not Required' : 'Required',
+                          group.memberCount < group.maxMembers
+                              ? 'Not Required'
+                              : 'Required',
                           style: TextStyle(
-                            color: group.memberCount < group.maxMembers ? Colors.green : Colors.orange,
+                            color: group.memberCount < group.maxMembers
+                                ? Colors.green
+                                : Colors.orange,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1269,9 +1361,7 @@ class _FeedScreenState extends State<FeedScreen>
               },
               child: const Text(
                 'Cancel',
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                ),
+                style: TextStyle(color: AppTheme.textSecondary),
               ),
             ),
             ElevatedButton(
@@ -1282,7 +1372,10 @@ class _FeedScreenState extends State<FeedScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1301,7 +1394,9 @@ class _FeedScreenState extends State<FeedScreen>
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Join request sent to ${group.creatorName}! Awaiting approval...'),
+        content: Text(
+          'Join request sent to ${group.creatorName}! Awaiting approval...',
+        ),
         backgroundColor: Colors.blue,
         duration: const Duration(seconds: 3),
         action: SnackBarAction(
@@ -1490,7 +1585,9 @@ class _FeedScreenState extends State<FeedScreen>
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                group.memberCount < group.maxMembers ? Icons.check_circle : Icons.person_outline,
+                                group.memberCount < group.maxMembers
+                                    ? Icons.check_circle
+                                    : Icons.person_outline,
                                 color: Colors.white,
                                 size: 16,
                               ),
@@ -1505,7 +1602,9 @@ class _FeedScreenState extends State<FeedScreen>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              group.memberCount < group.maxMembers ? 'Not required' : 'Required',
+                              group.memberCount < group.maxMembers
+                                  ? 'Not required'
+                                  : 'Required',
                               style: const TextStyle(
                                 color: AppTheme.textPrimary,
                                 fontSize: 14,
@@ -1524,7 +1623,9 @@ class _FeedScreenState extends State<FeedScreen>
                           color: const Color(0xFF4AC7F0).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFF4AC7F0).withValues(alpha: 0.3),
+                            color: const Color(
+                              0xFF4AC7F0,
+                            ).withValues(alpha: 0.3),
                           ),
                         ),
                         child: Column(
@@ -1557,7 +1658,10 @@ class _FeedScreenState extends State<FeedScreen>
                             const SizedBox(height: 12),
                             TextField(
                               controller: _extraPotsController,
-                              keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
+                              keyboardType: TextInputType.numberWithOptions(
+                                signed: false,
+                                decimal: false,
+                              ),
                               textInputAction: TextInputAction.done,
                               decoration: InputDecoration(
                                 hintText: 'Enter extra pots (minimum 10)',
@@ -1565,13 +1669,17 @@ class _FeedScreenState extends State<FeedScreen>
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: const Color(0xFF4AC7F0).withValues(alpha: 0.5),
+                                    color: const Color(
+                                      0xFF4AC7F0,
+                                    ).withValues(alpha: 0.5),
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: const Color(0xFF4AC7F0).withValues(alpha: 0.5),
+                                    color: const Color(
+                                      0xFF4AC7F0,
+                                    ).withValues(alpha: 0.5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -1582,16 +1690,23 @@ class _FeedScreenState extends State<FeedScreen>
                                   ),
                                 ),
                                 filled: true,
-                                fillColor: const Color(0xFF4AC7F0).withValues(alpha: 0.05),
+                                fillColor: const Color(
+                                  0xFF4AC7F0,
+                                ).withValues(alpha: 0.05),
                               ),
                               onChanged: (value) {
                                 // Ensure minimum value of 10
-                                if (value.isNotEmpty && int.tryParse(value) != null) {
+                                if (value.isNotEmpty &&
+                                    int.tryParse(value) != null) {
                                   final intValue = int.parse(value);
                                   if (intValue < 10) {
                                     _extraPotsController.text = '10';
-                                    _extraPotsController.selection = TextSelection.fromPosition(
-                                      TextPosition(offset: _extraPotsController.text.length),
+                                    _extraPotsController
+                                        .selection = TextSelection.fromPosition(
+                                      TextPosition(
+                                        offset:
+                                            _extraPotsController.text.length,
+                                      ),
                                     );
                                   }
                                 }
@@ -1656,7 +1771,10 @@ class _FeedScreenState extends State<FeedScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4AC7F0),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1676,7 +1794,9 @@ class _FeedScreenState extends State<FeedScreen>
     final totalCost = (group.joinCost) + extraPots;
 
     // Simulate processing the superlike join request
-    Logger.info('Processing superlike join request for ${group.name} with $extraPots extra pots');
+    Logger.info(
+      'Processing superlike join request for ${group.name} with $extraPots extra pots',
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1706,7 +1826,9 @@ class _FeedScreenState extends State<FeedScreen>
     } else if (availabilityPercentage >= 0.5) {
       return Colors.green.withValues(alpha: 0.9);
     } else {
-      return Colors.orange.withValues(alpha: 0.9); // Orange/yellow for below 50%
+      return Colors.orange.withValues(
+        alpha: 0.9,
+      ); // Orange/yellow for below 50%
     }
   }
 
@@ -1726,6 +1848,39 @@ class _FeedScreenState extends State<FeedScreen>
 
   // Helper method to build gender icon
   Widget _buildGenderIcon(String gender) {
+    if (gender.toLowerCase() == 'lgbtq+') {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spacingXS,
+          vertical: 2,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 14,
+              height: 10,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(3),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  width: 0.8,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: CustomPaint(painter: _RainbowFlagPainter()),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     IconData iconData;
     Color iconColor;
 
@@ -1737,10 +1892,6 @@ class _FeedScreenState extends State<FeedScreen>
       case 'female':
         iconData = Icons.female;
         iconColor = Colors.pink;
-        break;
-      case 'lgbtq+':
-        iconData = Icons.diversity_3;
-        iconColor = Colors.purple;
         break;
       default:
         iconData = Icons.person;
@@ -1762,15 +1913,8 @@ class _FeedScreenState extends State<FeedScreen>
         children: [
           Container(
             padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: iconColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              iconData,
-              color: Colors.white,
-              size: 10,
-            ),
+            decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
+            child: Icon(iconData, color: Colors.white, size: 10),
           ),
         ],
       ),
@@ -1804,11 +1948,7 @@ class _FeedScreenState extends State<FeedScreen>
               color: Colors.orange,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.cake,
-              color: Colors.white,
-              size: 10,
-            ),
+            child: Icon(Icons.cake, color: Colors.white, size: 10),
           ),
           const SizedBox(width: 3),
           Text(
@@ -1823,4 +1963,32 @@ class _FeedScreenState extends State<FeedScreen>
       ),
     );
   }
+}
+
+class _RainbowFlagPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    final stripeHeight = size.height / 6;
+
+    const colors = [
+      Color(0xFFE40303), // Red
+      Color(0xFFFF8C00), // Orange
+      Color(0xFFFFED00), // Yellow
+      Color(0xFF008026), // Green
+      Color(0xFF004CFF), // Blue
+      Color(0xFF750787), // Purple
+    ];
+
+    for (int i = 0; i < colors.length; i++) {
+      paint.color = colors[i];
+      canvas.drawRect(
+        Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RainbowFlagPainter oldDelegate) => false;
 }
