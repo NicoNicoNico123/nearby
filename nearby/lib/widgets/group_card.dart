@@ -525,21 +525,23 @@ class GroupCard extends StatelessWidget {
                       );
                     },
                   ),
-                  // Top overlay with pot, cost, gender, and age info
+                  // Top overlay with pot, cost, gender, and age info (compact for vertical cards)
                   Positioned(
-                    top: 4,
-                    left: 4,
+                    top: 2,
+                    left: 2,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Single row with most important info only
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Group Pot
+                            // Group Pot (most important)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 2,
+                                horizontal: 3,
+                                vertical: 1,
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.7),
@@ -552,91 +554,81 @@ class GroupCard extends StatelessWidget {
                                     padding: const EdgeInsets.all(1),
                                     decoration: BoxDecoration(
                                       color: Colors.amber,
-                                      borderRadius: BorderRadius.circular(2),
+                                      borderRadius: BorderRadius.circular(1),
                                     ),
                                     child: Icon(
                                       Icons.savings,
                                       color: Colors.white,
-                                      size: 10,
+                                      size: 8,
                                     ),
                                   ),
-                                  const SizedBox(width: 2),
+                                  const SizedBox(width: 1),
                                   Text(
                                     '${group.groupPot}',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 10,
+                                      fontSize: 8,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            // Join Cost
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(1),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.attach_money,
-                                      color: Colors.white,
-                                      size: 10,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    '${group.joinCost}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        // Gender and Age Range Icons
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Gender Icons
-                            ...group.allowedGenders
-                                .take(2)
-                                .map(
-                                  (gender) => Padding(
-                                    padding: const EdgeInsets.only(right: 2),
-                                    child: _buildGenderIcon(gender),
-                                  ),
-                                ),
-                            // Age Range Display
-                            if (group.ageRangeMin > 18 ||
-                                group.ageRangeMax < 100) ...[
+                            if (group.availableSpots < 3) ...[
                               const SizedBox(width: 2),
-                              _buildAgeRangeDisplay(
-                                group.ageRangeMin,
-                                group.ageRangeMax,
+                              // Show availability indicator if limited
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 3,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                        color: group.availableSpots == 0 ? Colors.red : Colors.orange,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 8,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 1),
+                                    Text(
+                                      '${group.availableSpots}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ],
                         ),
+                        // Only show gender icons if there's space
+                        if (group.allowedGenders.length <= 2)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 1),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Single gender icon (most common scenario)
+                                if (group.allowedGenders.isNotEmpty)
+                                  _buildCompactGenderIcon(group.allowedGenders.first),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -729,6 +721,71 @@ class GroupCard extends StatelessWidget {
   String _getWeekday(int weekday) {
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return weekdays[weekday - 1];
+  }
+
+  // Helper method to build compact gender icon for vertical cards
+  Widget _buildCompactGenderIcon(String gender) {
+    if (gender.toLowerCase() == 'lgbtq+') {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 2,
+          vertical: 1,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Container(
+          width: 10,
+          height: 7,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(2),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.9),
+              width: 0.6,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(1),
+            child: CustomPaint(painter: _CompactRainbowFlagPainter()),
+          ),
+        ),
+      );
+    }
+
+    IconData iconData;
+    Color iconColor;
+
+    switch (gender.toLowerCase()) {
+      case 'male':
+        iconData = Icons.male;
+        iconColor = Colors.blue;
+        break;
+      case 'female':
+        iconData = Icons.female;
+        iconColor = Colors.pink;
+        break;
+      default:
+        iconData = Icons.person;
+        iconColor = Colors.grey;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 2,
+        vertical: 1,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(1),
+        decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
+        child: Icon(iconData, color: Colors.white, size: 6),
+      ),
+    );
   }
 
   // Helper method to build gender icon
@@ -851,6 +908,34 @@ class GroupCard extends StatelessWidget {
 }
 
 class _RainbowFlagPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    final stripeHeight = size.height / 6;
+
+    const colors = [
+      Color(0xFFE40303), // Red
+      Color(0xFFFF8C00), // Orange
+      Color(0xFFFFED00), // Yellow
+      Color(0xFF008026), // Green
+      Color(0xFF004CFF), // Blue
+      Color(0xFF750787), // Purple
+    ];
+
+    for (int i = 0; i < colors.length; i++) {
+      paint.color = colors[i];
+      canvas.drawRect(
+        Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _CompactRainbowFlagPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
