@@ -102,6 +102,123 @@ class GroupCard extends StatelessWidget {
                         );
                       },
                     ),
+                    // Top overlay with pot, cost, gender, and age info
+                    Positioned(
+                      top: AppTheme.spacingSM,
+                      left: AppTheme.spacingSM,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Group Pot
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spacingSM,
+                                  vertical: AppTheme.spacingXS,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber,
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                      child: Icon(
+                                        Icons.savings,
+                                        color: Colors.white,
+                                        size: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${group.groupPot}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppTheme.spacingXS),
+                              // Join Cost
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spacingSM,
+                                  vertical: AppTheme.spacingXS,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.attach_money,
+                                        color: Colors.white,
+                                        size: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${group.joinCost}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppTheme.spacingXS),
+                          // Gender and Age Range Icons
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Gender Icons
+                              ...group.allowedGenders
+                                  .take(3)
+                                  .map(
+                                    (gender) => Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: AppTheme.spacingXS,
+                                      ),
+                                      child: _buildGenderIcon(gender),
+                                    ),
+                                  ),
+                              // Age Range Display
+                              if (group.ageRangeMin > 18 ||
+                                  group.ageRangeMax < 100) ...[
+                                const SizedBox(width: AppTheme.spacingXS),
+                                _buildAgeRangeDisplay(
+                                  group.ageRangeMin,
+                                  group.ageRangeMax,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                     // Overlay tags
                     Align(
                       alignment: Alignment.bottomLeft,
@@ -377,34 +494,153 @@ class GroupCard extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                group.imageUrl.isNotEmpty ? group.imageUrl : 'https://picsum.photos/400/300?random=fallback',
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
+              child: Stack(
+                children: [
+                  Image.network(
+                    group.imageUrl.isNotEmpty ? group.imageUrl : 'https://picsum.photos/400/300?random=fallback',
                     width: double.infinity,
                     height: double.infinity,
-                    color: AppTheme.surfaceColor,
-                    child: const Icon(
-                      Icons.group,
-                      size: 40,
-                      color: AppTheme.textTertiary,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        color: AppTheme.surfaceColor,
+                        child: const Icon(
+                          Icons.group,
+                          size: 40,
+                          color: AppTheme.textTertiary,
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                              : null,
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                        ),
+                      );
+                    },
+                  ),
+                  // Top overlay with pot, cost, gender, and age info
+                  Positioned(
+                    top: 4,
+                    left: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Group Pot
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                    child: Icon(
+                                      Icons.savings,
+                                      color: Colors.white,
+                                      size: 10,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '${group.groupPot}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            // Join Cost
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.attach_money,
+                                      color: Colors.white,
+                                      size: 10,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '${group.joinCost}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        // Gender and Age Range Icons
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Gender Icons
+                            ...group.allowedGenders
+                                .take(2)
+                                .map(
+                                  (gender) => Padding(
+                                    padding: const EdgeInsets.only(right: 2),
+                                    child: _buildGenderIcon(gender),
+                                  ),
+                                ),
+                            // Age Range Display
+                            if (group.ageRangeMin > 18 ||
+                                group.ageRangeMax < 100) ...[
+                              const SizedBox(width: 2),
+                              _buildAgeRangeDisplay(
+                                group.ageRangeMin,
+                                group.ageRangeMax,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                          : null,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                    ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
           ),
@@ -494,4 +730,150 @@ class GroupCard extends StatelessWidget {
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return weekdays[weekday - 1];
   }
+
+  // Helper method to build gender icon
+  Widget _buildGenderIcon(String gender) {
+    if (gender.toLowerCase() == 'lgbtq+') {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4,
+          vertical: 2,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 14,
+              height: 10,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(3),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  width: 0.8,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: CustomPaint(painter: _RainbowFlagPainter()),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    IconData iconData;
+    Color iconColor;
+
+    switch (gender.toLowerCase()) {
+      case 'male':
+        iconData = Icons.male;
+        iconColor = Colors.blue;
+        break;
+      case 'female':
+        iconData = Icons.female;
+        iconColor = Colors.pink;
+        break;
+      default:
+        iconData = Icons.person;
+        iconColor = Colors.grey;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
+            child: Icon(iconData, color: Colors.white, size: 10),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to build age range display
+  Widget _buildAgeRangeDisplay(int minAge, int maxAge) {
+    String ageText;
+    if (maxAge >= 100) {
+      ageText = '$minAge+';
+    } else {
+      ageText = '$minAge-$maxAge';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.cake, color: Colors.white, size: 10),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            ageText,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RainbowFlagPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    final stripeHeight = size.height / 6;
+
+    const colors = [
+      Color(0xFFE40303), // Red
+      Color(0xFFFF8C00), // Orange
+      Color(0xFFFFED00), // Yellow
+      Color(0xFF008026), // Green
+      Color(0xFF004CFF), // Blue
+      Color(0xFF750787), // Purple
+    ];
+
+    for (int i = 0; i < colors.length; i++) {
+      paint.color = colors[i];
+      canvas.drawRect(
+        Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
