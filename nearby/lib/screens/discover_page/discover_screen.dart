@@ -60,104 +60,47 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header matching HTML reference
-            _buildHeader(),
-            // Main content
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: LoadingSpinner())
-                  : SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildRecommendedSection(),
-                          _buildGroupsSection(),
-                        ],
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Enhanced Header with visual consistency
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingMD),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppTheme.borderColor,
-            width: 1,
+      appBar: AppBar(
+        backgroundColor: AppTheme.surfaceColor,
+        elevation: 0,
+        title: const Text(
+          'Discover',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w600,
+            fontSize: 24,
           ),
         ),
-      ),
-      child: Row(
-        children: [
-          // Logo placeholder with enhanced styling
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                width: 1,
+        actions: [
+          IconButton(
+            onPressed: () => _showFilterOptions(),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(8),
               ),
+              child: const Icon(Icons.tune, color: Colors.white, size: 20),
             ),
-            child: const Icon(
-              Icons.explore,
-              color: AppTheme.primaryColor,
-              size: 24,
-            ),
-          ),
-          // Title with enhanced styling
-          Expanded(
-            child: Center(
-              child: Text(
-                'DISCOVER',
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-          ),
-          // Action button placeholder
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppTheme.borderColor,
-                width: 1,
-              ),
-            ),
-            child: InkWell(
-              onTap: _showFilterOptions,
-              borderRadius: BorderRadius.circular(12),
-              child: const Icon(
-                Icons.tune,
-                color: AppTheme.textSecondary,
-                size: 20,
-              ),
-            ),
+            tooltip: 'Filter Groups',
           ),
         ],
       ),
+      body: _isLoading
+          ? const Center(child: LoadingSpinner())
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildRecommendedSection(),
+                  _buildGroupsSection(),
+                ],
+              ),
+            ),
     );
   }
 
+  
   // Enhanced "Recommended for you" section
   Widget _buildRecommendedSection() {
     return Column(
@@ -175,16 +118,15 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               const Icon(
                 Icons.recommend,
                 color: AppTheme.primaryColor,
-                size: 24,
+                size: 20,
               ),
-              const SizedBox(width: AppTheme.spacingSM),
+              const SizedBox(width: AppTheme.spacingXS),
               const Text(
                 'Recommended for you',
                 style: TextStyle(
                   color: AppTheme.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.3,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
@@ -260,16 +202,15 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               const Icon(
                 Icons.groups,
                 color: AppTheme.primaryColor,
-                size: 24,
+                size: 20,
               ),
-              const SizedBox(width: AppTheme.spacingSM),
+              const SizedBox(width: AppTheme.spacingXS),
               const Text(
                 'Groups for you',
                 style: TextStyle(
                   color: AppTheme.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.3,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
