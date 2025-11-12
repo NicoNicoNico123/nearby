@@ -203,7 +203,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           ),
         ),
         Container(
-          height: 540,
+          height: 560, // Increased height to accommodate flexible GroupCard
           decoration: const BoxDecoration(
             border: Border(
               top: BorderSide(
@@ -303,11 +303,12 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: AppTheme.spacingMD,
               mainAxisSpacing: AppTheme.spacingMD,
-              childAspectRatio: 0.65,
+              childAspectRatio: 0.65, // Slightly adjust for better fit
+              mainAxisExtent: 280, // Fixed height to prevent overflow
             ),
             itemCount: _allGroups.length,
             itemBuilder: (context, index) {
