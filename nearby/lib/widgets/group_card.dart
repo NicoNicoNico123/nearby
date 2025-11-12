@@ -287,34 +287,66 @@ class GroupCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: onLike,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-                            foregroundColor: AppTheme.primaryColor,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
+                        child: InkWell(
+                          onTap: onLike,
+                          borderRadius: BorderRadius.circular(999),
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.favorite,
+                              color: Colors.white,
+                              size: 24,
                             ),
                           ),
-                          child: const Icon(Icons.favorite, size: 20),
                         ),
                       ),
                       const SizedBox(width: AppTheme.spacingSM),
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: onSuperlike,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4AC7F0).withValues(alpha: 0.2),
-                            foregroundColor: const Color(0xFF4AC7F0),
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
+                        child: InkWell(
+                          onTap: onSuperlike,
+                          borderRadius: BorderRadius.circular(999),
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF4AC7F0),
+                                  Color(0xFF00D4FF),
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF4AC7F0).withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                                BoxShadow(
+                                  color: const Color(0xFF00D4FF).withValues(alpha: 0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.star,
+                              color: Colors.white,
+                              size: 28,
                             ),
                           ),
-                          child: const Icon(Icons.star, size: 20),
                         ),
                       ),
                     ],
