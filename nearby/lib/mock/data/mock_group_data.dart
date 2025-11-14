@@ -1,3 +1,5 @@
+import 'unified_interests.dart';
+
 /// Static group data for mock generation
 class MockGroupData {
   // Private constructor to prevent instantiation
@@ -113,52 +115,10 @@ class MockGroupData {
     'Sight Glass Coffee'
   ];
 
-  // Group categories/interests
-  static const List<String> groupInterests = [
-    'Italian',
-    'Japanese',
-    'Mexican',
-    'Thai',
-    'Indian',
-    'French',
-    'Chinese',
-    'Korean',
-    'Vietnamese',
-    'Mediterranean',
-    'American',
-    'Seafood',
-    'BBQ',
-    'Vegetarian',
-    'Vegan',
-    'Pizza',
-    'Burgers',
-    'Sushi',
-    'Ramen',
-    'Tacos',
-    'Pasta',
-    'Steakhouse',
-    'Coffee',
-    'Brunch',
-    'Desserts',
-    'Wine',
-    'Cocktails',
-    'Beer',
-    'Whiskey',
-    'Fine Dining',
-    'Casual Dining',
-    'Street Food',
-    'Food Trucks',
-    'Food Tours',
-    'Cooking Classes',
-    'Wine Tasting',
-    'Brewery Tours',
-    'Food Festivals',
-    'Happy Hour',
-    'Late Night Eats',
-    'Breakfast',
-    'Lunch',
-    'Dinner'
-  ];
+  // DEPRECATED: Use UnifiedInterests.getAllInterests() instead
+  // Group categories/interests - now using unified interests system
+  @Deprecated('Use UnifiedInterests.getAllInterests() instead')
+  static List<String> get groupInterests => UnifiedInterests.getAllInterests();
 
   // Meal types
   static const List<String> mealTypes = [

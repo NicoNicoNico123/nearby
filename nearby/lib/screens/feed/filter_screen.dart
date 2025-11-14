@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import '../../services/mock/mock_data_service.dart';
+import '../../mock/services/mock_data_service.dart';
 import '../../utils/logger.dart';
 
 class FilterScreen extends StatefulWidget {

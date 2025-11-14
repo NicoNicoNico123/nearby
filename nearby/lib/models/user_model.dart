@@ -1,3 +1,5 @@
+import '../shared/base_data/models/entities/user_profile_attributes.dart';
+
 class User {
   final String id;
   final String name;
@@ -208,6 +210,25 @@ class User {
 
   @override
   int get hashCode => id.hashCode;
+
+  /// Converts user to UserProfileAttributes for hashtag generation
+  UserProfileAttributes get toProfileAttributes {
+    return UserProfileAttributes(
+      work: work ?? '',
+      education: education ?? '',
+      mealInterest: mealInterest ?? '',
+      drinkingHabits: drinkingHabits ?? '',
+      starSign: starSign ?? '',
+      age: age ?? 25,
+      gender: gender,
+    );
+  }
+
+  /// Gets all hashtags generated from user profile
+  List<String> get hashtags => toProfileAttributes.allHashtags;
+
+  /// Gets weighted hashtags for matching
+  Map<String, double> get weightedHashtags => toProfileAttributes.weightedHashtags;
 
   @override
   String toString() {

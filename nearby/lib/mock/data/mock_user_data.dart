@@ -1,3 +1,6 @@
+import 'consolidated_constants.dart';
+import 'unified_interests.dart';
+
 /// Static user data for mock generation
 class MockUserData {
   // Private constructor to prevent instantiation
@@ -233,37 +236,13 @@ class MockUserData {
     'professional'
   ];
 
+  // DEPRECATED: Use ConsolidatedConstants.profileCompletionWeights instead
   // Profile completion data for realistic user generation
-  static const Map<String, dynamic> profileCompletionWeights = {
-    'work': 0.7,        // 70% of users have work filled
-    'education': 0.6,   // 60% have education filled
-    'drinkingHabits': 0.8, // 80% have drinking habits filled
-    'mealInterest': 0.9,   // 90% have meal interest filled
-    'starSign': 0.4,     // 40% have star sign filled
-    'languages': 0.85,   // 85% have languages filled
-  };
+  @Deprecated('Use ConsolidatedConstants.profileCompletionWeights instead')
+  static Map<String, dynamic> get profileCompletionWeights => ConsolidatedConstants.profileCompletionWeights;
 
-  // Interest categories for grouping
-  static const Map<String, List<String>> interestCategories = {
-    'Food Types': [
-      'Italian', 'Japanese', 'Mexican', 'Thai', 'Indian', 'French',
-      'Chinese', 'Korean', 'Vietnamese', 'Greek', 'Spanish', 'Mediterranean'
-    ],
-    'Dining Styles': [
-      'Fine Dining', 'Casual Dining', 'Fast Food', 'Street Food',
-      'Food Trucks', 'Pop-up Restaurants', 'Ghost Kitchens'
-    ],
-    'Beverages': [
-      'Wine', 'Craft Cocktails', 'Coffee', 'Tea', 'Beer', 'Whiskey',
-      'Mocktails', 'Fresh Juice', 'Smoothies'
-    ],
-    'Social': [
-      'Brunch', 'Happy Hour', 'Dinner Parties', 'Food Festivals',
-      'Cooking Classes', 'Food Tours', 'Wine Tasting'
-    ],
-    'Dietary': [
-      'Vegetarian', 'Vegan', 'Gluten-Free', 'Keto', 'Paleo',
-      'Organic', 'Farm-to-Table', 'Sustainable'
-    ]
-  };
+  // DEPRECATED: Use UnifiedInterests.categories instead
+  // Interest categories for grouping - now using unified interests system
+  @Deprecated('Use UnifiedInterests.categories instead')
+  static Map<String, List<String>> get interestCategories => UnifiedInterests.categories;
 }

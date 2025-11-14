@@ -6,7 +6,7 @@ import '../../models/group_model.dart';
 import '../../models/user_model.dart';
 import '../../widgets/user_avatar.dart';
 import '../../widgets/member_profile_popup.dart';
-import '../../services/mock/mock_data_service.dart';
+import '../../mock/services/mock_data_service.dart';
 import '../../services/map_service.dart';
 import '../../utils/logger.dart';
 

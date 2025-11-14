@@ -280,59 +280,6 @@ class GroupCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  // Pot and cost info
-                  Container(
-                    padding: const EdgeInsets.all(AppTheme.spacingXS),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.monetization_on,
-                              size: 14,
-                              color: AppTheme.primaryColor,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${group.groupPot} pts',
-                              style: const TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.trending_up,
-                              size: 14,
-                              color: Colors.orange,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${group.joinCost} pts',
-                              style: const TextStyle(
-                                color: Colors.orange,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: AppTheme.spacingXS),
                   // Location info
                   InkWell(

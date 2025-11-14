@@ -32,6 +32,12 @@ class Group {
   final int joinCostFees; // Additional join cost fees
   final int hostAdditionalPoints; // Manually added points by host
 
+  // USER HOUSE fields for hashtag matching
+  final bool isUserHouse; // Whether this is a USER HOUSE group
+  final List<String> requiredHashtags; // Required hashtags for matching
+  final List<String> preferredHashtags; // Preferred hashtags for matching
+  final String userHouseCategory; // USER HOUSE category (Professional, Social, Hobby, Lifestyle)
+
   Group({
     required this.id,
     required this.name,
@@ -64,6 +70,11 @@ class Group {
     this.ageRangeMax = 100,
     this.joinCostFees = 0,
     this.hostAdditionalPoints = 0,
+    // USER HOUSE fields with defaults
+    this.isUserHouse = false,
+    this.requiredHashtags = const [],
+    this.preferredHashtags = const [],
+    this.userHouseCategory = '',
   });
 
   // Check if group is full
@@ -114,6 +125,11 @@ class Group {
     int? ageRangeMax,
     int? joinCostFees,
     int? hostAdditionalPoints,
+    // USER HOUSE fields
+    bool? isUserHouse,
+    List<String>? requiredHashtags,
+    List<String>? preferredHashtags,
+    String? userHouseCategory,
   }) {
     return Group(
       id: id ?? this.id,
@@ -147,6 +163,11 @@ class Group {
       ageRangeMax: ageRangeMax ?? this.ageRangeMax,
       joinCostFees: joinCostFees ?? this.joinCostFees,
       hostAdditionalPoints: hostAdditionalPoints ?? this.hostAdditionalPoints,
+      // USER HOUSE fields
+      isUserHouse: isUserHouse ?? this.isUserHouse,
+      requiredHashtags: requiredHashtags ?? this.requiredHashtags,
+      preferredHashtags: preferredHashtags ?? this.preferredHashtags,
+      userHouseCategory: userHouseCategory ?? this.userHouseCategory,
     );
   }
 
@@ -184,6 +205,11 @@ class Group {
       'ageRangeMax': ageRangeMax,
       'joinCostFees': joinCostFees,
       'hostAdditionalPoints': hostAdditionalPoints,
+      // USER HOUSE fields
+      'isUserHouse': isUserHouse,
+      'requiredHashtags': requiredHashtags,
+      'preferredHashtags': preferredHashtags,
+      'userHouseCategory': userHouseCategory,
     };
   }
 
@@ -226,6 +252,15 @@ class Group {
       ageRangeMax: json['ageRangeMax'] as int? ?? 100,
       joinCostFees: json['joinCostFees'] as int? ?? 0,
       hostAdditionalPoints: json['hostAdditionalPoints'] as int? ?? 0,
+      // USER HOUSE fields with defaults for backward compatibility
+      isUserHouse: json['isUserHouse'] as bool? ?? false,
+      requiredHashtags: (json['requiredHashtags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? [],
+      preferredHashtags: (json['preferredHashtags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? [],
+      userHouseCategory: json['userHouseCategory'] as String? ?? '',
     );
   }
 }

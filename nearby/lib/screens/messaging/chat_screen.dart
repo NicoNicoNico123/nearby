@@ -3,7 +3,7 @@ import '../../models/message_model.dart';
 import '../../models/user_model.dart';
 import '../../models/group_model.dart';
 import '../../services/messaging_service.dart';
-import '../../services/mock/mock_data_service.dart';
+import '../../mock/services/mock_data_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/user_avatar.dart';
 import '../../widgets/member_profile_popup.dart';

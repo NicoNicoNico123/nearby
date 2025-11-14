@@ -4,7 +4,7 @@ import '../../theme/app_theme.dart';
 import '../../models/group_model.dart';
 import '../../widgets/loading_states.dart';
 import '../../services/map_service.dart';
-import '../../services/mock/mock_data_service.dart';
+import '../../mock/services/mock_data_service.dart';
 import '../../utils/logger.dart';
 
 class FeedScreen extends StatefulWidget {

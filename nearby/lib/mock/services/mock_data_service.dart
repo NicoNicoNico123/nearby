@@ -1,12 +1,12 @@
 import 'dart:developer' as developer;
 import '../../models/user_model.dart';
 import '../../models/group_model.dart';
-import 'mock_user.dart';
-import 'generators/user_generator.dart';
-import 'generators/group_generator.dart';
-import 'repositories/user_repository.dart';
-import 'repositories/group_repository.dart';
-import 'storage/mock_storage.dart';
+import '../data/mock_user.dart';
+import '../generators/user_generator.dart';
+import '../generators/group_generator.dart';
+import '../repositories/user_repository.dart';
+import '../repositories/group_repository.dart';
+import '../storage/mock_storage.dart';
 
 /// Refactored MockDataService using modular architecture
 /// Maintains backward compatibility while using new modular components
@@ -617,5 +617,314 @@ class MockDataService {
       maxDistance: maxDistance,
       isAvailable: isAvailable,
     );
+  }
+
+  // ========== USER HOUSE SPECIFIC METHODS ==========
+
+  /// Get all USER HOUSE groups
+  List<Group> getUserHouseGroups() {
+    return _groupRepository.getAllGroups()
+        .where((group) => group.isUserHouse)
+        .toList();
+  }
+
+  /// Get USER HOUSE groups by category
+  List<Group> getUserHouseGroupsByCategory(String category) {
+    return _groupRepository.getAllGroups()
+        .where((group) => group.isUserHouse && group.userHouseCategory == category)
+        .toList();
+  }
+
+  /// Get USER HOUSE groups that match user's hashtags
+  List<Group> getUserHouseGroupsByHashtags(List<String> userHashtags) {
+    return _groupRepository.getAllGroups()
+        .where((group) {
+          if (!group.isUserHouse) return false;
+
+          // Check if user has any required hashtags
+          final hasRequiredHashtag = group.requiredHashtags
+              .any((requiredTag) => userHashtags.contains(requiredTag));
+
+          // Check if user has any preferred hashtags
+          final hasPreferredHashtag = group.preferredHashtags
+              .any((preferredTag) => userHashtags.contains(preferredTag));
+
+          return hasRequiredHashtag || hasPreferredHashtag;
+        })
+        .toList();
+  }
+
+  /// Get USER HOUSE groups compatible with a specific user
+  List<Group> getUserHouseCompatibleGroups(String userId) {
+    final user = getUserById(userId);
+    if (user == null) return [];
+
+    return getUserHouseGroupsByHashtags(user.hashtags);
+  }
+
+  /// Generate USER HOUSE groups and add them to the system
+  Future<void> generateUserHouseGroups({
+    int count = 8,
+    Map<String, int>? categoryDistribution,
+  }) async {
+    final users = _userRepository.getAllUsers();
+    final currentUser = getCurrentUser();
+
+    // Default category distribution if not provided
+    final distribution = categoryDistribution ?? {
+      'Professional': 2,
+      'Social': 2,
+      'Hobby': 2,
+      'Lifestyle': 2,
+    };
+
+    final generatedGroups = <Group>[];
+    int groupIdCounter = 1;
+
+    for (final entry in distribution.entries) {
+      final category = entry.key;
+      final categoryCount = entry.value;
+
+      for (int i = 0; i < categoryCount; i++) {
+        final groupId = 'user_house_${groupIdCounter++}';
+
+        final group = _groupGenerator.generateUserHouseGroup(
+          groupId,
+          users,
+          userHouseCategory: category,
+          currentUserIdToExclude: currentUser.id,
+        );
+
+        generatedGroups.add(group);
+      }
+    }
+
+    // Add all generated groups to storage
+    for (final group in generatedGroups) {
+      await _groupRepository.addGroup(group);
+    }
+
+    developer.log('Generated ${generatedGroups.length} USER HOUSE groups', name: 'MockDataService');
+  }
+
+  /// Enhanced getFilteredGroups with USER HOUSE support
+  List<Group> getFilteredGroupsWithUserHouse({
+    List<String>? interests,
+    double? maxDistance,
+    double? minAge,
+    double? maxAge,
+    List<String>? genders,
+    List<String>? languages,
+    bool? hasAvailableSpots,
+    int? minJoinCost,
+    int? maxJoinCost,
+    String? location,
+    // USER HOUSE specific filters
+    bool? isUserHouse,
+    String? userHouseCategory,
+    List<String>? requiredHashtags,
+    List<String>? preferredHashtags,
+    String? userId, // For compatibility matching
+  }) {
+    var groups = _groupRepository.getAllGroups();
+
+    // Apply USER HOUSE filters
+    if (isUserHouse != null) {
+      groups = groups.where((group) => group.isUserHouse == isUserHouse).toList();
+    }
+
+    if (userHouseCategory != null) {
+      groups = groups.where((group) => group.userHouseCategory == userHouseCategory).toList();
+    }
+
+    if (requiredHashtags != null && requiredHashtags.isNotEmpty) {
+      groups = groups.where((group) {
+        return requiredHashtags.any((requiredTag) =>
+            group.requiredHashtags.contains(requiredTag));
+      }).toList();
+    }
+
+    if (preferredHashtags != null && preferredHashtags.isNotEmpty) {
+      groups = groups.where((group) {
+        return preferredHashtags.any((preferredTag) =>
+            group.preferredHashtags.contains(preferredTag));
+      }).toList();
+    }
+
+    // Apply user compatibility filter
+    if (userId != null) {
+      final user = getUserById(userId);
+      if (user != null) {
+        groups = groups.where((group) {
+          if (!group.isUserHouse) return true; // Non-USER HOUSE groups don't need compatibility
+
+          final userHashtags = user.hashtags;
+          final hasRequiredMatch = group.requiredHashtags
+              .any((requiredTag) => userHashtags.contains(requiredTag));
+          final hasPreferredMatch = group.preferredHashtags
+              .any((preferredTag) => userHashtags.contains(preferredTag));
+
+          return hasRequiredMatch || hasPreferredMatch;
+        }).toList();
+      }
+    }
+
+    // Apply existing filters by creating a custom filter for groups
+    if (interests != null && interests.isNotEmpty) {
+      groups = groups.where((group) =>
+          interests.any((interest) => group.interests.contains(interest))).toList();
+    }
+
+    if (minAge != null) {
+      groups = groups.where((group) => group.ageRangeMin >= minAge!.toInt()).toList();
+    }
+
+    if (maxAge != null) {
+      groups = groups.where((group) => group.ageRangeMax <= maxAge!.toInt()).toList();
+    }
+
+    if (genders != null && genders.isNotEmpty) {
+      groups = groups.where((group) =>
+          genders.any((gender) => group.allowedGenders.contains(gender))).toList();
+    }
+
+    if (languages != null && languages.isNotEmpty) {
+      groups = groups.where((group) =>
+          languages.any((language) => group.allowedLanguages.contains(language))).toList();
+    }
+
+    if (hasAvailableSpots == true) {
+      groups = groups.where((group) => !group.isFull).toList();
+    }
+
+    if (minJoinCost != null) {
+      groups = groups.where((group) => group.joinCost >= minJoinCost!).toList();
+    }
+
+    if (maxJoinCost != null) {
+      groups = groups.where((group) => group.joinCost <= maxJoinCost!).toList();
+    }
+
+    if (location != null) {
+      groups = groups.where((group) => group.location?.toLowerCase().contains(location.toLowerCase()) == true).toList();
+    }
+
+    return groups;
+  }
+
+  /// Get USER HOUSE statistics
+  Map<String, dynamic> getUserHouseStatistics() {
+    final userHouseGroups = getUserHouseGroups();
+    final totalGroups = _groupRepository.getAllGroups().length;
+
+    final categoryStats = <String, int>{};
+    for (final group in userHouseGroups) {
+      categoryStats[group.userHouseCategory] = (categoryStats[group.userHouseCategory] ?? 0) + 1;
+    }
+
+    return {
+      'totalUserHouseGroups': userHouseGroups.length,
+      'totalGroups': totalGroups,
+      'userHousePercentage': totalGroups > 0 ? (userHouseGroups.length / totalGroups * 100).round() : 0,
+      'categoryBreakdown': categoryStats,
+      'averageMemberCount': userHouseGroups.isNotEmpty
+          ? (userHouseGroups.map((g) => g.memberCount).reduce((a, b) => a + b) / userHouseGroups.length).round()
+          : 0,
+      'averageJoinCost': userHouseGroups.isNotEmpty
+          ? (userHouseGroups.map((g) => g.joinCost).reduce((a, b) => a + b) / userHouseGroups.length).round()
+          : 0,
+    };
+  }
+
+  /// Update existing groups to include USER HOUSE data (for migration)
+  Future<void> migrateGroupsToUserHouse() async {
+    final allGroups = _groupRepository.getAllGroups();
+    bool needsUpdate = false;
+
+    for (final group in allGroups) {
+      if (!group.isUserHouse && shouldConvertToUserHouse(group)) {
+        // Convert existing group to USER HOUSE
+        final updatedGroup = group.copyWith(
+          isUserHouse: true,
+          requiredHashtags: generateRequiredHashtagsForGroup(group),
+          preferredHashtags: generatePreferredHashtagsForGroup(group),
+          userHouseCategory: determineUserHouseCategory(group),
+        );
+
+        await _groupRepository.updateGroup(updatedGroup);
+        needsUpdate = true;
+      }
+    }
+
+    if (needsUpdate) {
+      developer.log('Migrated existing groups to USER HOUSE format', name: 'MockDataService');
+    }
+  }
+
+  /// Helper method to determine if a group should be converted to USER HOUSE
+  bool shouldConvertToUserHouse(Group group) {
+    // Convert groups that seem to have clear professional/social focus
+    final professionalKeywords = ['networking', 'professional', 'business', 'career', 'tech'];
+    final socialKeywords = ['social', 'friends', 'community', 'meet', 'connection'];
+
+    final lowerName = group.name.toLowerCase();
+    final lowerDescription = group.description.toLowerCase();
+
+    return professionalKeywords.any((keyword) =>
+            lowerName.contains(keyword) || lowerDescription.contains(keyword)) ||
+           socialKeywords.any((keyword) =>
+            lowerName.contains(keyword) || lowerDescription.contains(keyword));
+  }
+
+  /// Generate required hashtags for an existing group
+  List<String> generateRequiredHashtagsForGroup(Group group) {
+    final hashtags = <String>[];
+    final lowerName = group.name.toLowerCase();
+
+    if (lowerName.contains('tech') || lowerName.contains('developer') || lowerName.contains('engineer')) {
+      hashtags.addAll(['#Tech', '#Engineering']);
+    }
+    if (lowerName.contains('design') || lowerName.contains('creative')) {
+      hashtags.addAll(['#Design', '#Creative']);
+    }
+    if (lowerName.contains('social') || lowerName.contains('network')) {
+      hashtags.addAll(['#Social', '#Networking']);
+    }
+
+    // Add category as hashtag
+    if (group.category != null) {
+      hashtags.add('#${group.category}');
+    }
+
+    return hashtags;
+  }
+
+  /// Generate preferred hashtags for an existing group
+  List<String> generatePreferredHashtagsForGroup(Group group) {
+    final hashtags = <String>[];
+
+    // Add interests as preferred hashtags
+    for (final interest in group.interests) {
+      hashtags.add('#$interest');
+    }
+
+    return hashtags;
+  }
+
+  /// Determine USER HOUSE category for an existing group
+  String determineUserHouseCategory(Group group) {
+    final lowerName = group.name.toLowerCase();
+
+    if (lowerName.contains('tech') || lowerName.contains('business') || lowerName.contains('career')) {
+      return 'Professional';
+    }
+    if (lowerName.contains('hobby') || lowerName.contains('art') || lowerName.contains('creative')) {
+      return 'Hobby';
+    }
+    if (lowerName.contains('wellness') || lowerName.contains('health') || lowerName.contains('lifestyle')) {
+      return 'Lifestyle';
+    }
+
+    return 'Social'; // Default to Social
   }
 }

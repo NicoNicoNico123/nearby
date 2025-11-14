@@ -2,9 +2,10 @@ import 'dart:developer' as developer;
 import '../generators/base_generator.dart';
 import '../data/mock_constants.dart';
 import '../data/mock_group_data.dart';
+import '../data/mock_user_house_data.dart';
 import '../../../models/group_model.dart';
 import '../../../models/user_model.dart';
-import '../mock_user.dart';
+import '../data/mock_user.dart';
 
 /// Group generator class for creating realistic mock groups
 class GroupGenerator extends BaseGenerator {
@@ -428,5 +429,251 @@ class GroupGenerator extends BaseGenerator {
     }
 
     return languages;
+  }
+
+  /// Generate a USER HOUSE group with hashtag matching functionality
+  Group generateUserHouseGroup(
+    String groupId,
+    List<User> availableUsers, {
+    required String userHouseCategory,
+    List<String>? requiredHashtags,
+    List<String>? preferredHashtags,
+    String? currentUserIdToExclude,
+    User? forcedCreator,
+    List<User>? forcedMembers,
+  }) {
+    // Get USER HOUSE template or use defaults
+    final categoryTemplate = MockUserHouseData.getCategoryTemplate(userHouseCategory);
+    final categoryRequiredHashtags = requiredHashtags ??
+        MockUserHouseData.generateRequiredHashtagsForCategory(userHouseCategory);
+    final categoryPreferredHashtags = preferredHashtags ??
+        MockUserHouseData.generatePreferredHashtagsForCategory(userHouseCategory);
+
+    // Find a matching USER HOUSE template from our samples
+    final userHouseTemplates = MockUserHouseData.getUserHouseGroupsByCategory(userHouseCategory);
+    final template = userHouseTemplates.isNotEmpty
+        ? randomItem(userHouseTemplates)
+        : {
+            'name': '$userHouseCategory Group',
+            'description': categoryTemplate?['description'] ?? 'A great $userHouseCategory group',
+            'subtitle': 'USER HOUSE Experience',
+            'venue': MockUserHouseData.userHouseVenues[0]['name'],
+            'maxMembers': 15,
+            'joinCost': 50,
+            'ageRangeMin': 21,
+            'ageRangeMax': 45,
+          };
+
+    // Calculate capacity and availability for USER HOUSE groups
+    var maxMembers = template['maxMembers'] as int? ?? 15;
+    final forcedMemberCount = (forcedMembers ?? [])
+        .where((member) => forcedCreator == null || member.id != forcedCreator.id)
+        .length;
+    if (forcedMemberCount > 0 && forcedMemberCount + 1 > maxMembers) {
+      maxMembers = forcedMemberCount + 1;
+    }
+    final additionalMembersCount = randomInt(2, maxMembers - 1);
+    final waitingListSize = randomInt(0, 3);
+
+    // Select creator with preference for matching user profiles
+    final creator = forcedCreator ?? _selectUserHouseCreator(
+      availableUsers,
+      categoryRequiredHashtags,
+      excludeUserId: currentUserIdToExclude,
+    );
+    final members = _selectUserHouseMembers(
+      availableUsers,
+      additionalMembersCount,
+      categoryRequiredHashtags,
+      creator,
+      currentUserIdToExclude,
+      forcedMembers: forcedMembers,
+    );
+    final limitedMembers = members.take((maxMembers - 1).clamp(0, members.length)).toList();
+
+    // Generate USER HOUSE specific data
+    final joinCost = template['joinCost'] as int? ?? 50;
+    final joinCostFees = (joinCost * 0.05).round(); // 5% fee for USER HOUSE
+    final pointsPerMember = MockConstants.pointsPerMember;
+    final hostAdditionalPoints = randomInt(0, 200);
+    final groupPot = limitedMembers.length * pointsPerMember + joinCost + hostAdditionalPoints;
+    final imageUrl = generateImageUrl(width: 400, height: 300, seed: 'user_house_$groupId');
+
+    // Generate meeting details (typically earlier for professional groups, later for social)
+    final minHour = userHouseCategory == 'Professional' ? 17 : 18;
+    final maxHour = userHouseCategory == 'Professional' ? 20 : 21;
+    final meetingTime = randomDateTime(
+      startDate: DateTime.now(),
+      endDate: DateTime.now().add(const Duration(days: 30)),
+      minHour: minHour,
+      maxHour: maxHour,
+    );
+
+    // Generate coordinates around city centers for USER HOUSE venues
+    final coordinates = _getUserHouseCoordinates(userHouseCategory);
+    final createdAt = randomDateInLastDays(60); // Created within last 60 days
+
+    // Generate age range based on category
+    final ageRange = _getUserHouseAgeRange(userHouseCategory);
+    final allowedGenders = ['Male', 'Female', 'LGBTQ+']; // USER HOUSE groups are inclusive
+    final genderLimits = _generateGenderLimits(maxMembers, allowedGenders);
+    final allowedLanguages = _generateAllowedLanguages();
+
+    final memberIds = ([creator.id, ...limitedMembers.map((m) => m.id)]).take(maxMembers).toList();
+
+    return Group(
+      id: groupId,
+      name: template['name'] as String,
+      description: template['description'] as String,
+      subtitle: template['subtitle'] as String? ?? 'USER HOUSE Experience',
+      imageUrl: imageUrl,
+      interests: [userHouseCategory, ...categoryRequiredHashtags.take(3)],
+      memberCount: (limitedMembers.length + 1).clamp(1, maxMembers),
+      category: userHouseCategory,
+      creatorId: creator.id,
+      creatorName: creator.name,
+      venue: template['venue'] as String,
+      mealTime: meetingTime,
+      maxMembers: maxMembers,
+      memberIds: memberIds,
+      waitingList: _generateWaitingList(availableUsers, waitingListSize, limitedMembers + [creator]),
+      isActive: true,
+      createdAt: createdAt,
+      location: _getUserHouseLocation(userHouseCategory),
+      latitude: coordinates['latitude'],
+      longitude: coordinates['longitude'],
+      groupPot: groupPot,
+      joinCost: joinCost,
+      // Enhanced group features
+      title: '$userHouseCategory Experience',
+      allowedGenders: allowedGenders,
+      genderLimits: genderLimits,
+      allowedLanguages: allowedLanguages,
+      ageRangeMin: ageRange[0],
+      ageRangeMax: ageRange[1],
+      joinCostFees: joinCostFees,
+      hostAdditionalPoints: hostAdditionalPoints,
+      // USER HOUSE specific fields
+      isUserHouse: true,
+      requiredHashtags: categoryRequiredHashtags,
+      preferredHashtags: categoryPreferredHashtags,
+      userHouseCategory: userHouseCategory,
+    );
+  }
+
+  /// Select creator for USER HOUSE groups based on hashtag compatibility
+  User _selectUserHouseCreator(
+    List<User> availableUsers,
+    List<String> requiredHashtags, {
+    String? excludeUserId,
+  }) {
+    // Filter users who have matching hashtags
+    final eligibleUsers = availableUsers.where((user) {
+      if (user.id == excludeUserId) return false;
+      final userHashtags = user.hashtags;
+      final matchCount = requiredHashtags.where((tag) => userHashtags.contains(tag)).length;
+      return matchCount > 0; // User must have at least one matching hashtag
+    }).toList();
+
+    // If no users match hashtags, fall back to premium/creator users
+    if (eligibleUsers.isEmpty) {
+      final fallbackUsers = availableUsers.where((user) =>
+          user.id != excludeUserId && (user.isPremium || user.userType == 'creator')).toList();
+      return fallbackUsers.isNotEmpty ? randomItem(fallbackUsers) : randomItem(availableUsers.where((u) => u.id != excludeUserId).toList());
+    }
+
+    // Prefer users with more hashtag matches
+    eligibleUsers.sort((a, b) {
+      final aMatches = requiredHashtags.where((tag) => a.hashtags.contains(tag)).length;
+      final bMatches = requiredHashtags.where((tag) => b.hashtags.contains(tag)).length;
+      return bMatches.compareTo(aMatches);
+    });
+
+    return eligibleUsers.first;
+  }
+
+  /// Select members for USER HOUSE groups based on hashtag compatibility
+  List<User> _selectUserHouseMembers(
+    List<User> availableUsers,
+    int memberCount,
+    List<String> requiredHashtags,
+    User creator,
+    String? excludeUserId, {
+    List<User>? forcedMembers,
+  }) {
+    if (forcedMembers != null && forcedMembers.isNotEmpty) {
+      return forcedMembers;
+    }
+
+    final eligibleUsers = availableUsers.where((user) {
+      if (user.id == creator.id || user.id == excludeUserId) return false;
+      final userHashtags = user.hashtags;
+      final matchCount = requiredHashtags.where((tag) => userHashtags.contains(tag)).length;
+      return matchCount > 0; // User must have at least one matching hashtag
+    }).toList();
+
+    // If not enough users match hashtags, include others for diversity
+    if (eligibleUsers.length < memberCount) {
+      final additionalUsers = availableUsers.where((user) =>
+          user.id != creator.id &&
+          user.id != excludeUserId &&
+          !eligibleUsers.contains(user)).toList();
+      eligibleUsers.addAll(additionalUsers);
+    }
+
+    final selectedUsers = <User>[];
+    for (int i = 0; i < memberCount && i < eligibleUsers.length; i++) {
+      selectedUsers.add(eligibleUsers[i]);
+    }
+
+    return selectedUsers;
+  }
+
+  /// Get coordinates for USER HOUSE venues based on category
+  Map<String, double> _getUserHouseCoordinates(String category) {
+    switch (category.toLowerCase()) {
+      case 'professional':
+        return randomCoordinates(baseLatitude: 37.78, baseLongitude: -122.40, variance: 0.02); // Financial District
+      case 'creative':
+        return randomCoordinates(baseLatitude: 37.77, baseLongitude: -122.40, variance: 0.02); // SoMa/Mission
+      case 'social':
+        return randomCoordinates(baseLatitude: 37.78, baseLongitude: -122.41, variance: 0.02); // Downtown
+      case 'lifestyle':
+        return randomCoordinates(baseLatitude: 37.76, baseLongitude: -122.43, variance: 0.02); // Hayes Valley/Western Addition
+      default:
+        return randomCoordinates(); // Default SF coordinates
+    }
+  }
+
+  /// Get location description for USER HOUSE groups
+  String _getUserHouseLocation(String category) {
+    switch (category.toLowerCase()) {
+      case 'professional':
+        return 'Financial District, San Francisco';
+      case 'creative':
+        return 'SoMa Arts District, San Francisco';
+      case 'social':
+        return 'Downtown San Francisco';
+      case 'lifestyle':
+        return 'Wellness District, San Francisco';
+      default:
+        return 'San Francisco, CA';
+    }
+  }
+
+  /// Get age range for USER HOUSE categories
+  List<int> _getUserHouseAgeRange(String category) {
+    switch (category.toLowerCase()) {
+      case 'professional':
+        return [25, 45];
+      case 'social':
+        return [21, 35];
+      case 'hobby':
+        return [20, 50];
+      case 'lifestyle':
+        return [22, 45];
+      default:
+        return [21, 40];
+    }
   }
 }

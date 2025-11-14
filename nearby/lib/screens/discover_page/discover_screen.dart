@@ -3,7 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../models/group_model.dart';
 import '../../widgets/group_card.dart';
 import '../../widgets/loading_states.dart';
-import '../../services/mock/mock_data_service.dart';
+import '../../mock/services/mock_data_service.dart';
 import '../../utils/logger.dart';
 
 class DiscoverScreen extends StatefulWidget {

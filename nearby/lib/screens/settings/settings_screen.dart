@@ -4,8 +4,8 @@ import '../../utils/logger.dart';
 import '../user_profile/profile_screen.dart';
 import '../../widgets/user_avatar.dart';
 import '../../models/user_model.dart';
-import '../../services/mock/mock_data_service.dart';
-import '../../services/mock/mock_user.dart';
+import '../../mock/services/mock_data_service.dart';
+import '../../mock/data/mock_user.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

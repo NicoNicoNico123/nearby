@@ -8,11 +8,11 @@ import 'screens/feed/filter_screen.dart';
 import 'screens/feed/interest_search_screen.dart';
 import 'screens/feed/language_search_screen.dart';
 import 'models/group_model.dart';
-import 'services/mock/mock_data_service.dart';
+import 'mock/services/mock_data_service.dart';
 import 'utils/navigation_service.dart';
 import 'utils/logger.dart';
 // Uncomment for development validation
-// import 'services/test/mock_data_validation.dart';
+// import 'mock/mock_data_validation.dart';
 
 // Global instance for easy access
 final mockDataService = MockDataService();

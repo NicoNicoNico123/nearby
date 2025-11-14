@@ -1,6 +1,6 @@
 import '../generators/group_generator.dart';
 import '../storage/mock_storage.dart';
-import '../mock_user.dart';
+import '../data/mock_user.dart';
 import '../../../models/group_model.dart';
 import '../../../models/user_model.dart';
 import 'dart:developer' as developer;

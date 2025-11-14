@@ -1,4 +1,4 @@
-import '../mock/mock_data_service.dart';
+import 'services/mock_data_service.dart';
 import '../../models/user_model.dart';
 import 'dart:developer' as developer;
 

@@ -3,7 +3,7 @@ import 'dart:math';
 import '../models/message_model.dart';
 import '../models/user_model.dart';
 import '../utils/logger.dart';
-import 'mock/mock_data_service.dart';
+import '../mock/services/mock_data_service.dart';
 
 class MessagingService {
   static final MessagingService _instance = MessagingService._internal();

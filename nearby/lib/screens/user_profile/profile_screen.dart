@@ -94,6 +94,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildAdditionalInfo(),
             const SizedBox(height: AppTheme.spacingXL),
             _buildInterests(),
+            const SizedBox(height: AppTheme.spacingXL),
+            _buildHashtagPreview(),
           ],
         ),
       ),
@@ -1509,5 +1511,274 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'icon': Icons.help_outline,
       },
     ];
+  }
+
+  Widget _buildHashtagPreview() {
+    final user = _getCurrentUser();
+    final attributes = user.toProfileAttributes;
+    final allHashtags = attributes.allHashtags;
+
+    // Group hashtags by category
+    final workHashtags = attributes.workHashtags.take(5).toList();
+    final educationHashtags = attributes.educationHashtags.take(3).toList();
+    final lifestyleHashtags = attributes.lifestyleHashtags.take(5).toList();
+    final zodiacHashtags = attributes.zodiacHashtags.take(3).toList();
+    final demographicHashtags = attributes.demographicHashtags.take(3).toList();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingMD),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.tag,
+                  color: AppTheme.primaryColor,
+                  size: 20,
+                ),
+                const SizedBox(width: AppTheme.spacingSM),
+                Text(
+                  'Your Matching Hashtags',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingSM,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${allHashtags.length} total',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingMD),
+
+            Text(
+              'These hashtags help groups find and match with you based on your profile information.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingMD),
+
+            // Work hashtags
+            if (workHashtags.isNotEmpty) ...[
+              _buildHashtagCategory('Work & Career', workHashtags, Icons.work),
+              const SizedBox(height: AppTheme.spacingSM),
+            ],
+
+            // Education hashtags
+            if (educationHashtags.isNotEmpty) ...[
+              _buildHashtagCategory('Education', educationHashtags, Icons.school),
+              const SizedBox(height: AppTheme.spacingSM),
+            ],
+
+            // Lifestyle hashtags
+            if (lifestyleHashtags.isNotEmpty) ...[
+              _buildHashtagCategory('Lifestyle', lifestyleHashtags, Icons.restaurant),
+              const SizedBox(height: AppTheme.spacingSM),
+            ],
+
+            // Zodiac hashtags
+            if (zodiacHashtags.isNotEmpty) ...[
+              _buildHashtagCategory('Star Sign', zodiacHashtags, Icons.star),
+              const SizedBox(height: AppTheme.spacingSM),
+            ],
+
+            // Demographic hashtags
+            if (demographicHashtags.isNotEmpty) ...[
+              _buildHashtagCategory('Demographics', demographicHashtags, Icons.people),
+              const SizedBox(height: AppTheme.spacingSM),
+            ],
+
+            // Show more button
+            if (allHashtags.length > 25) ...[
+              Center(
+                child: TextButton.icon(
+                  onPressed: _showAllHashtags,
+                  icon: const Icon(Icons.expand_more, size: 16),
+                  label: const Text('Show all hashtags'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHashtagCategory(String title, List<String> hashtags, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: AppTheme.textSecondary,
+            ),
+            const SizedBox(width: AppTheme.spacingSM),
+            Text(
+              title,
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spacingSM),
+        Wrap(
+          spacing: AppTheme.spacingSM,
+          runSpacing: AppTheme.spacingSM,
+          children: hashtags.map((hashtag) {
+            return Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingSM,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                hashtag,
+                style: const TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  void _showAllHashtags() {
+    final user = _getCurrentUser();
+    final attributes = user.toProfileAttributes;
+    final allHashtags = attributes.allHashtags;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: AppTheme.backgroundColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppTheme.textTertiary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingMD),
+                child: Row(
+                  children: [
+                    Text(
+                      'All Your Hashtags',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMD),
+                  itemCount: (allHashtags.length / 3).ceil(),
+                  itemBuilder: (context, rowIndex) {
+                    final startIndex = rowIndex * 3;
+                    final endIndex = (startIndex + 3).clamp(0, allHashtags.length);
+                    final rowItems = allHashtags.sublist(startIndex, endIndex);
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppTheme.spacingSM),
+                      child: Row(
+                        children: rowItems.map((hashtag) {
+                          return Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: AppTheme.spacingSM),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spacingSM,
+                                  vertical: AppTheme.spacingMD,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  hashtag,
+                                  style: const TextStyle(
+                                    color: AppTheme.primaryColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
